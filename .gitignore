@@ -1,0 +1,105 @@
+# ---------------------------------------------------------------------------
+# Secrets & lokale Konfiguration — NIEMALS committen
+# ---------------------------------------------------------------------------
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+*.pfx
+*.p12
+appsettings.Local.json
+appsettings.*.Local.json
+deploy/secrets/
+**/*.secret.*
+
+# ---------------------------------------------------------------------------
+# .NET
+# ---------------------------------------------------------------------------
+[Bb]in/
+[Oo]bj/
+[Dd]ebug/
+[Rr]elease/
+[Ll]ogs/
+*.user
+*.suo
+*.userprefs
+*.sln.docstates
+*.nupkg
+*.snupkg
+.vs/
+TestResults/
+[Cc]overage/
+coverage*.json
+coverage*.xml
+coverage*.info
+*.trx
+BenchmarkDotNet.Artifacts/
+StrykerOutput/
+msbuild.log
+msbuild.err
+msbuild.wrn
+
+# ---------------------------------------------------------------------------
+# Node / Next.js
+# ---------------------------------------------------------------------------
+node_modules/
+.pnp
+.pnp.*
+.next/
+out/
+build/
+dist/
+.turbo/
+*.tsbuildinfo
+next-env.d.ts
+.eslintcache
+.npm
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# ---------------------------------------------------------------------------
+# Tests & Tooling
+# ---------------------------------------------------------------------------
+playwright-report/
+playwright/.cache/
+test-results/
+blob-report/
+.lighthouseci/
+
+# ---------------------------------------------------------------------------
+# Editoren — geteilte Vorlagen bleiben versioniert
+# ---------------------------------------------------------------------------
+.vscode/*
+!.vscode/extensions.json
+!.vscode/settings.example.json
+.idea/
+*.swp
+*~
+
+# ---------------------------------------------------------------------------
+# Betriebssystem
+# ---------------------------------------------------------------------------
+.DS_Store
+._*
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+
+# ---------------------------------------------------------------------------
+# Lokale Daten & Temporäres
+# ---------------------------------------------------------------------------
+*.db
+*.db-shm
+*.db-wal
+tmp/
+temp/
+uploads/
+
+
+# ---------------------------------------------------------------------------
+# Deutsche Lesekopien — nicht Teil des Repositories
+# ---------------------------------------------------------------------------
+_de/
