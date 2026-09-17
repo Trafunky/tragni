@@ -1,58 +1,55 @@
 # 00 — Vision
 
-## Kernaussage
+## Core statement
 
-> tragni.ch ist die persönliche Engineering-Plattform von Stephan Tragni. Sie
-> präsentiert nicht nur abgeschlossene Projekte, sondern ist selbst das grösste
-> davon: eine über Jahre wachsende, produktiv betriebene Anwendung, an der
-> Aufbau, Betrieb und Weiterentwicklung öffentlich nachvollziehbar sind.
+> tragni.ch is Stephan Tragni's personal engineering platform. It does not just
+> present finished projects — it is the largest one: an application that grows
+> over years, runs in production, and whose construction, operation and
+> evolution can be followed in public.
 >
-> Ziel ist, dass eine fachkundige Person nach kurzer Betrachtung überzeugt ist,
-> dass hier jemand Software nicht nur schreibt, sondern versteht und betreibt.
+> The goal is that a knowledgeable visitor comes away convinced that the person
+> behind it does not merely write software, but understands and operates it.
 
-## Was das bedeutet
+## What follows from this
 
-Der zweite Satz ist ein Versprechen an das System selbst. Daraus folgen drei
-Leitentscheidungen, die jede spätere Detailfrage mitentscheiden:
+The second sentence is a promise the system makes about itself. Three guiding
+decisions follow from it, and they settle most later questions of detail:
 
-**1. Die Plattform ist nicht das Produkt — die Projekte sind es.**
-tragni.ch ist die Bühne, nicht die Aufführung. Jede Funktion, die das
-Veröffentlichen eines neuen Projekts erschwert, arbeitet gegen den Zweck des
-Systems.
+**1. The platform is not the product — the projects are.**
+tragni.ch is the stage, not the performance. Any feature that makes publishing
+a new project harder works against the purpose of the system.
 
-**2. Der Weg dorthin ist Teil der Aussage.**
-Nicht nur das Ergebnis wird gezeigt, sondern die Entscheidungen: ADRs,
-Pull Requests, Commit-Historie, CI-Läufe, Betriebsmetriken. Ein öffentliches
-Repository ohne nachvollziehbare Entscheidungen ist nur Code.
+**2. The path there is part of the message.**
+Not only results are shown, but decisions: ADRs, pull requests, commit history,
+CI runs, operational metrics. A public repository without visible reasoning is
+just code.
 
-**3. Das System muss ohne Betreuung überleben.**
-Es wird nebenberuflich betrieben, mit einer realistischen Reaktionszeit von bis
-zu 24 Stunden. Selbstheilung ist deshalb keine Kür, sondern Grundanforderung.
+**3. The system has to survive unattended.**
+It is operated alongside a full-time job, with a realistic response time of up
+to 24 hours. Self-healing is therefore a baseline requirement, not a nicety.
 
-## Persönlicher Kontext
+## Personal context
 
-Der berufliche Weg — handwerkliche Grundbildung, danach Planung/AVOR in der
-Industrie, heute Verantwortung für mehrere Applikationen, dazu ein
-berufsbegleitendes Studium — ist ein Differenzierungsmerkmal und wird auf der
-Seite als solches dargestellt. Gezeigt werden Branche, Rolle und Zeiträume;
-Arbeitgebernamen werden bewusst **nicht** öffentlich genannt (siehe
-[02-scope.md](02-scope.md), Annahmen).
+The career path — a trade apprenticeship, then planning and work preparation in
+industry, today responsibility for several applications, alongside a degree
+completed part-time — is a differentiator and is presented as one. Industry,
+role and time periods are shown; employer names are deliberately **not**
+published (see [02-scope.md](02-scope.md), assumptions).
 
-## Erfolgskriterien
+## Success criteria
 
-Das Projekt gilt als erfolgreich, wenn nach zwölf Monaten gilt:
+The project is successful if, after twelve months:
 
-- Die Seite läuft produktiv und wurde im Zeitraum mehrfach erweitert.
-- Mindestens vier Projekte sind veröffentlicht, das jüngste ist nicht älter als
-  drei Monate.
-- Ein neues Projekt zu veröffentlichen kostet höchstens einen Abend und kein
-  Deployment.
-- Ein fremder Entwickler kann anhand von README und ADRs die Architektur
-  verstehen, ohne zu fragen.
-- Das System hat mindestens einen unbeaufsichtigten Ausfall selbst überstanden.
+- The site runs in production and has been extended several times in that period.
+- At least four projects are published, the most recent no older than three
+  months.
+- Publishing a new project takes at most one evening and no deployment.
+- An outside developer can understand the architecture from the README and the
+  ADRs without asking.
+- The system has survived at least one unattended outage on its own.
 
-## Was das Projekt nicht ist
+## What the project is not
 
-Kein kommerzielles Produkt, keine Agentur-Website, kein CMS für Dritte, kein
-Blog. Es gibt keine Nutzer, die bedient werden müssen — es gibt Betrachter, die
-überzeugt werden sollen, und einen Betreiber, der Freude daran haben muss.
+Not a commercial product, not an agency website, not a CMS for third parties,
+not a blog. There are no users to serve — there are visitors to convince, and
+an operator who has to enjoy running it.

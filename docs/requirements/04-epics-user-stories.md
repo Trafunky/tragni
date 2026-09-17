@@ -1,194 +1,188 @@
 # 04 — Epics & User Stories
 
-Akzeptanzkriterien im Given/When/Then-Format. Sie definieren „fertig", nicht die
-Umsetzung. Jede Story ist so geschnitten, dass sie in ein bis zwei Arbeitsblöcke
-von wenigen Stunden passt.
+Acceptance criteria use Given/When/Then. They define done, not how it is built.
+Each story is cut so that it fits into one or two working blocks of a few hours.
 
 ---
 
-## E1 — Projekt-Katalog
+## E1 — Project catalogue
 
-### PK-01 · Projektübersicht
+### PK-01 · Project overview
 
-> Als **Besucher** will ich alle veröffentlichten Projekte auf einen Blick
-> sehen, um schnell einzuschätzen, was gebaut wurde.
+> As a **visitor** I want to see all published projects at a glance, so I can
+> quickly judge what has been built.
 
-- **Given** es existieren veröffentlichte Projekte, **when** ich `/` bzw.
-  `/projekte` aufrufe, **then** sehe ich pro Projekt Titel, Kurzbeschreibung,
-  Vorschaubild und die verwendeten Technologien.
-- **Given** ein Projekt ist als Entwurf markiert, **when** ich die Übersicht
-  aufrufe, **then** erscheint es nicht — auch nicht bei Kenntnis der URL.
-- **Given** es existiert kein veröffentlichtes Projekt, **when** ich die Seite
-  aufrufe, **then** sehe ich einen gestalteten Leerzustand.
-- **Given** Mobilgerät im 4G-Profil, **when** die Seite lädt, **then** ist
-  LCP < 2,0 s. *(Q1)*
+- **Given** published projects exist, **when** I open `/` or `/projects`,
+  **then** I see title, summary, preview image and the technologies used for
+  each project.
+- **Given** a project is marked as a draft, **when** I open the overview,
+  **then** it does not appear — not even if I know the URL.
+- **Given** no published project exists, **when** I open the page, **then** I
+  see a designed empty state.
+- **Given** a mobile device on a 4G profile, **when** the page loads, **then**
+  LCP is below 2.0 s. *(Q1)*
 
-### PK-02 · Nach Technologie filtern
+### PK-02 · Filter by technology
 
-> Als **Tech Lead** will ich nach Technologien filtern, um zu sehen, ob
-> Erfahrung mit meinem Stack besteht.
+> As a **tech lead** I want to filter by technology, so I can see whether there
+> is experience with my stack.
 
-- **Given** Projekte mit verschiedenen Technologien, **when** ich eine
-  Technologie wähle, **then** sehe ich nur passende Projekte und der Filter
-  steht in der URL (`?tech=csharp`).
-- **Given** eine gefilterte URL, **when** jemand sie öffnet, **then** ist
-  derselbe Filter aktiv.
-- **Given** eine Filterkombination ohne Treffer, **when** ich sie wähle,
-  **then** sehe ich eine Meldung mit Möglichkeit zum Zurücksetzen.
-- **Given** JavaScript ist deaktiviert, **when** ich die Übersicht aufrufe,
-  **then** sind die Projekte trotzdem sichtbar. *(Q4, Q5)*
+- **Given** projects with different technologies, **when** I select one,
+  **then** I see only matching projects and the filter is reflected in the URL
+  (`?tech=csharp`).
+- **Given** a filtered URL, **when** someone opens it, **then** the same filter
+  is active.
+- **Given** a filter combination with no results, **when** I select it, **then**
+  I see a message with a way to reset.
+- **Given** JavaScript is disabled, **when** I open the overview, **then** the
+  projects are still visible. *(Q4, Q5)*
 
-### PK-03 · Projektdetail
+### PK-03 · Project detail
 
-> Als **Besucher** will ich ein Projekt im Detail lesen, um Kontext,
-> Entscheidungen und Ergebnis zu verstehen.
+> As a **visitor** I want to read a project in detail, so I understand the
+> context, the decisions and the outcome.
 
-- **Given** ein veröffentlichtes Projekt, **when** ich es öffne, **then** sehe
-  ich unter `/projekte/<slug>` den vollständigen Inhalt, Bilder, Tech-Stack und
-  Zeitraum.
-- **Given** der Inhalt enthält Codeblöcke, **when** die Seite rendert, **then**
-  sind sie mit Syntax-Highlighting dargestellt.
-- **Given** ein unbekannter Slug, **when** ich ihn aufrufe, **then** erhalte ich
-  HTTP 404 mit gestalteter Fehlerseite.
-- **Given** der Slug wurde nachträglich geändert, **when** jemand die alte URL
-  aufruft, **then** werde ich per 301 auf die neue umgeleitet.
+- **Given** a published project, **when** I open it, **then** I see the full
+  content, images, tech stack and time period at `/projects/<slug>`.
+- **Given** the content contains code blocks, **when** the page renders,
+  **then** they have syntax highlighting.
+- **Given** an unknown slug, **when** I request it, **then** I get HTTP 404 with
+  a designed error page.
+- **Given** the slug was changed later, **when** someone requests the old URL,
+  **then** they are redirected to the new one with a 301.
 
-> Das letzte Kriterium erfordert eine Slug-Historie im Datenmodell.
+> The last criterion requires slug history in the data model.
 
-### PK-04 · Quellcode und Demo erreichen
+### PK-04 · Reach source code and demo
 
-> Als **Entwickler** will ich direkt zum Repository springen, um den Code zu
-> beurteilen.
+> As a **developer** I want to jump straight to the repository, so I can judge
+> the code.
 
-- **Given** ein Projekt hat eine GitHub-URL, **when** ich die Detailseite
-  ansehe, **then** ist der Link prominent und öffnet in neuem Tab mit
-  `rel="noopener"`.
-- **Given** ein Projekt hat keine Demo-URL, **when** die Seite rendert, **then**
-  erscheint kein toter Demo-Button.
-- **Given** ein Projekt hat eine Demo-URL, **when** ich klicke, **then** lande
-  ich auf der laufenden Demo. *(erst mit E6)*
+- **Given** a project has a GitHub URL, **when** I view the detail page,
+  **then** the link is prominent and opens in a new tab with `rel="noopener"`.
+- **Given** a project has no demo URL, **when** the page renders, **then** no
+  dead demo button appears.
+- **Given** a project has a demo URL, **when** I click it, **then** I land on
+  the running demo. *(applies from Epic 6)*
 
-### PK-05 · Teilbarkeit
+### PK-05 · Shareability
 
-> Als **Recruiter** will ich einen Projektlink teilen, ohne dass eine nackte URL
-> erscheint.
+> As a **recruiter** I want to share a project link without a bare URL showing
+> up.
 
-- **Given** eine Projektseite, **when** ein Dienst die Vorschau lädt, **then**
-  liefert die Seite Open-Graph-Titel, -Beschreibung und -Bild.
-- **Given** die Seite ist live, **when** ein Crawler sie liest, **then**
-  existieren `sitemap.xml`, `robots.txt` und strukturierte Daten. *(Q4)*
+- **Given** a project page, **when** a service loads the preview, **then** the
+  page provides Open Graph title, description and image.
+- **Given** the site is live, **when** a crawler reads it, **then**
+  `sitemap.xml`, `robots.txt` and structured data exist. *(Q4)*
 
 ---
 
-## E2 — Content-Verwaltung
+## E2 — Content management
 
-### CV-01 · Anmelden
+### CV-01 · Sign in
 
-> Als **Admin** will ich mich sicher anmelden, um Inhalte zu pflegen.
+> As the **admin** I want to sign in securely, so I can manage content.
 
-- **Given** ich bin nicht angemeldet, **when** ich `/admin` aufrufe, **then**
-  werde ich zum Login geleitet.
-- **Given** ich melde mich über den externen Identitätsanbieter an, **when** der
-  Flow erfolgreich ist, **then** setzt das Backend einen HttpOnly-, Secure-,
-  SameSite-Cookie; kein Token ist im Browser-JavaScript zugänglich.
-- **Given** meine externe Identität ist keiner Rolle zugeordnet, **when** ich
-  mich anmelde, **then** erhalte ich 403 und keinen Zugriff.
-- **Given** eine abgelaufene Session, **when** ich eine Aktion ausführe, **then**
-  erhalte ich 401 und werde zum Login geführt, ohne meinen Entwurf zu verlieren.
-- **Given** wiederholte Fehlversuche, **when** die Schwelle überschritten ist,
-  **then** greift Rate-Limiting.
-- **Given** der API-Container wird neu gestartet, **when** ich danach eine
-  Aktion ausführe, **then** bleibt meine Session gültig (persistierte
-  DataProtection-Keys).
-- **Given** ein schreibender Zugriff, **when** kein gültiges Antiforgery-Token
-  mitgesendet wird, **then** wird er abgelehnt.
+- **Given** I am not signed in, **when** I open `/admin`, **then** I am
+  redirected to the login.
+- **Given** I sign in through the external identity provider, **when** the flow
+  succeeds, **then** the backend sets an HttpOnly, Secure, SameSite cookie; no
+  token is reachable from browser JavaScript.
+- **Given** my external identity is not mapped to a role, **when** I sign in,
+  **then** I get 403 and no access.
+- **Given** an expired session, **when** I perform an action, **then** I get 401
+  and am taken to the login without losing my draft.
+- **Given** repeated failed attempts, **when** the threshold is exceeded,
+  **then** rate limiting applies.
+- **Given** the API container restarts, **when** I then perform an action,
+  **then** my session is still valid (persisted data protection keys).
+- **Given** a write request, **when** no valid antiforgery token is sent,
+  **then** it is rejected.
 
-### CV-02 · Projekt als Entwurf anlegen
+### CV-02 · Create a project as a draft
 
-> Als **Admin** will ich ein Projekt anlegen und speichern, ohne es sofort zu
-> veröffentlichen.
+> As the **admin** I want to create and save a project without publishing it
+> immediately.
 
-- **Given** ich bin angemeldet, **when** ich ein Projekt mit Titel und
-  Beschreibung speichere, **then** ist es als Entwurf gespeichert und öffentlich
-  unsichtbar.
-- **Given** ich gebe einen Titel ein, **when** ich keinen Slug angebe, **then**
-  wird einer vorgeschlagen, den ich überschreiben kann.
-- **Given** ein bereits vergebener Slug, **when** ich speichere, **then** erhalte
-  ich eine verständliche Fehlermeldung statt eines 500ers.
-- **Given** ungültige Eingaben, **when** ich speichere, **then** validieren
-  Frontend und Backend unabhängig voneinander.
+- **Given** I am signed in, **when** I save a project with a title and a
+  description, **then** it is stored as a draft and is not publicly visible.
+- **Given** I enter a title, **when** I supply no slug, **then** one is
+  suggested and I can override it.
+- **Given** a slug that is already taken, **when** I save, **then** I get a
+  comprehensible error message rather than a 500.
+- **Given** invalid input, **when** I save, **then** frontend and backend
+  validate independently of each other.
 
-### CV-03 · Bilder hochladen
+### CV-03 · Upload images
 
-> Als **Admin** will ich Screenshots hochladen, ohne sie vorher von Hand zu
-> optimieren.
+> As the **admin** I want to upload screenshots without optimising them by hand
+> first.
 
-- **Given** ich lade ein JPEG oder PNG hoch, **when** der Upload abgeschlossen
-  ist, **then** liegen optimierte Varianten (WebP/AVIF, mehrere Breiten) vor.
-- **Given** eine Datei über dem Limit oder mit falschem Typ, **when** ich sie
-  wähle, **then** wird sie abgelehnt — geprüft am tatsächlichen Inhalt, nicht an
-  der Dateiendung.
-- **Given** ein hochgeladenes Bild, **when** ich es einbinde, **then** ist ein
-  Alt-Text Pflichtfeld. *(Q5)*
-- **Given** ein Bild wird nicht mehr referenziert, **when** die Aufräumroutine
-  läuft, **then** wird es entfernt.
+- **Given** I upload a JPEG or PNG, **when** the upload completes, **then**
+  optimised variants exist (WebP/AVIF, several widths).
+- **Given** a file over the limit or of the wrong type, **when** I select it,
+  **then** it is rejected — checked by actual content, not by file extension.
+- **Given** an uploaded image, **when** I embed it, **then** alt text is
+  mandatory. *(Q5)*
+- **Given** an image is no longer referenced, **when** the cleanup routine runs,
+  **then** it is removed.
 
-### CV-04 · Veröffentlichen und zurückziehen
+### CV-04 · Publish and retire
 
-> Als **Admin** will ich selbst bestimmen, wann ein Projekt sichtbar wird.
+> As the **admin** I want to decide myself when a project becomes visible.
 
-- **Given** ein fertiger Entwurf, **when** ich veröffentliche, **then** ist er
-  innerhalb einer Minute öffentlich sichtbar (ISR-Revalidierung). *(Q14)*
-- **Given** ein veröffentlichtes Projekt, **when** ich es zurückziehe, **then**
-  liefert die URL 410 und es verschwindet aus Übersicht und Sitemap.
-- **Given** ein Entwurf, **when** ich eine signierte Vorschau-URL erzeuge,
-  **then** kann ich ihn zeigen, ohne zu veröffentlichen.
-- **Given** ich lösche ein Projekt, **when** die Aktion bestätigt ist, **then**
-  wird es als gelöscht markiert (Soft Delete) und ist nirgends mehr sichtbar;
-  endgültiges Löschen erfolgt nur über eine bewusste Aufräumroutine.
+- **Given** a finished draft, **when** I publish it, **then** it is publicly
+  visible within a minute (ISR revalidation). *(Q14)*
+- **Given** a published project, **when** I retire it, **then** the URL returns
+  410 and it disappears from the overview and the sitemap.
+- **Given** a draft, **when** I generate a signed preview URL, **then** I can
+  show it to someone without publishing.
+- **Given** I delete a project, **when** the action is confirmed, **then** it is
+  marked as deleted (soft delete) and is nowhere visible; permanent deletion
+  happens only through a deliberate cleanup routine.
 
-### CV-05 · Reihenfolge steuern
+### CV-05 · Control ordering
 
-> Als **Admin** will ich bestimmen, welche Projekte zuerst erscheinen.
+> As the **admin** I want to decide which projects appear first.
 
-- **Given** mehrere Projekte, **when** ich eines als hervorgehoben markiere,
-  **then** steht es in der Übersicht oben.
-- **Given** keine manuelle Sortierung, **when** die Übersicht lädt, **then** ist
-  die Standardreihenfolge nachvollziehbar (neueste zuerst).
+- **Given** several projects, **when** I mark one as featured, **then** it
+  appears at the top of the overview.
+- **Given** no manual ordering, **when** the overview loads, **then** the
+  default order is comprehensible (most recent first).
 
-### CV-06 · Inhalte erfassen
+### CV-06 · Author content
 
-> Als **Admin** will ich Projektinhalte in Markdown schreiben und die Wirkung
-> sehen, bevor ich veröffentliche.
+> As the **admin** I want to write project content in Markdown and see the
+> result before publishing.
 
-- **Given** der Editor, **when** ich Markdown eingebe, **then** sehe ich eine
-  Live-Vorschau in der Darstellung der späteren Seite.
-- **Given** Markdown mit eingebettetem HTML, **when** es gerendert wird,
-  **then** wird es sanitisiert; eingeschleustes Skript wird nicht ausgeführt.
-- **Given** ein hochgeladenes Bild, **when** ich es im Editor einfüge, **then**
-  wird die korrekte Referenz eingesetzt, ohne dass ich Pfade kenne.
+- **Given** the editor, **when** I type Markdown, **then** I see a live preview
+  rendered as the published page will look.
+- **Given** Markdown with embedded HTML, **when** it is rendered, **then** it is
+  sanitised; injected script does not execute.
+- **Given** an uploaded image, **when** I insert it in the editor, **then** the
+  correct reference is written without me knowing any paths.
 
-> Kein WYSIWYG. Ein Rich-Text-Editor ist ein eigenes Projekt mit eigener
-> Fehlerklasse; es gibt genau einen Autor, und der kann Markdown.
+> No WYSIWYG. A rich text editor is a project of its own with a failure class of
+> its own; there is exactly one author, and that author knows Markdown.
 
 ---
 
-## Architekturvorkehrungen aus späteren Epics
+## Architectural provisions from later epics
 
-Diese Punkte werden **nicht im MVP gebaut**, aber jetzt vorgesehen, weil sie
-nachträglich teuer wären:
+Not built in the MVP, but provided for now because they would be expensive to
+retrofit:
 
-- **Benutzer-Entity** mit `ExternalId` + `Provider` (nicht „GitHubId"), `Role`
-  und `CreatedAt`. Im MVP enthält sie genau einen Datensatz.
-- **Rollenmodell** `Anonymous` / `User` / `Contributor` / `Admin`, umgesetzt über
-  Policies (`RequireAuthorization("CanManageProjects")`), nie über
-  Rollenvergleiche im Code.
-- **Ressourcenbasierte Autorisierung** als vorhandener Einstiegspunkt
-  (`IAuthorizationHandler`), auch wenn die Implementierung zunächst trivial ist.
-- **Selbstregistrierung** bei Erstanmeldung ist ein bewusster, per Flag
-  abschaltbarer Vorgang.
-- **Token-Exchange:** Die Plattform stellt auf Anfrage kurzlebige, signierte
-  Token für ein bestimmtes Projekt aus; das Projekt prüft nur die Signatur.
-  Kein Cookie-Sharing über Subdomains, kein geteilter Datenbankzugriff.
-- **Cookie-Scope** eng auf die Hauptdomain begrenzen, damit Demo-Subdomains den
-  Admin-Cookie nie sehen.
+- **User entity** with `ExternalId` + `Provider` (not "GitHubId"), `Role` and
+  `CreatedAt`. In the MVP it holds exactly one record.
+- **Role model** `Anonymous` / `User` / `Contributor` / `Admin`, implemented
+  through policies (`RequireAuthorization("CanManageProjects")`), never through
+  role comparisons in code.
+- **Resource-based authorisation** as an existing entry point
+  (`IAuthorizationHandler`), even though the implementation is trivial at first.
+- **Self-registration** on first sign-in is a deliberate act and can be switched
+  off with a flag.
+- **Token exchange:** on request, the platform issues short-lived signed tokens
+  for a specific project; the project only verifies the signature. No cookie
+  sharing across subdomains, no shared database access.
+- **Cookie scope** restricted tightly to the main domain, so demo subdomains
+  never see the admin cookie.
