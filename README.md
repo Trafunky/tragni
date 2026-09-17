@@ -71,7 +71,7 @@ contact point — the generated API client. No shared code, no shared runtime.
 Stated as measurable targets and enforced in the pipeline — among them
 LCP < 2.0 s, WCAG 2.2 AA, no high or critical CVEs in the production image,
 RTO ≤ 30 minutes. The full set:
-[`03-qualitaetsziele.md`](docs/requirements/03-qualitaetsziele.md).
+[`03-quality-goals.md`](docs/requirements/03-quality-goals.md).
 
 Deliberately **not** goals: high availability, horizontal scalability,
 multi-tenancy. The system runs on a single VPS and is operated alongside a
