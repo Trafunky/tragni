@@ -17,16 +17,28 @@ sequentially, named after the decision rather than the chosen technology.
 | [0004](0004-backend-as-authentication-authority.md) | Backend as the authentication authority | accepted | 2026-09-17 |
 | [0005](0005-traefik-as-reverse-proxy.md) | Traefik as the reverse proxy | accepted | 2026-09-17 |
 | [0006](0006-hosted-observability-backend.md) | Hosted observability backend | accepted | 2026-09-17 |
+| [0007](0007-vertical-slices-with-domain-core.md) | Vertical slices with a protected domain core | accepted | 2026-09-19 |
+| [0008](0008-no-mediator-framework.md) | No mediator framework | accepted | 2026-09-19 |
+| [0009](0009-ef-core-for-data-access.md) | EF Core for data access | accepted | 2026-09-19 |
+| [0010](0010-nextjs-as-frontend-framework.md) | Next.js as the frontend framework | accepted | 2026-09-19 |
+| [0011](0011-pnpm-as-package-manager.md) | pnpm as the package manager | accepted | 2026-09-19 |
 
-## Still open
+## Decisions without an ADR
 
-Deliberately not decided yet. These were carried over from an earlier draft and
-are being re-evaluated during the architecture work rather than inherited:
+Not everything warrants one. These were considered and deliberately not written
+up, so that their absence is not read as an oversight:
 
-- Frontend framework and UI library
-- ORM and data access approach
-- Backend architecture style (layered, vertical slice, or something else)
-- Whether CQRS and a mediator pattern are justified at this scale
+- **PostgreSQL** — not a contested choice. The default relational database for
+  this stack, container-friendly, and nothing in the requirements points
+  elsewhere. The version is pinned and upgraded deliberately.
+- **TypeScript** — the default for this frontend stack in 2026, not a decision
+  requiring justification. The parts that *are* decisions — strictness settings
+  and runtime validation at system boundaries — are recorded as crosscutting
+  concepts in
+  [arc42 chapter 8](../architecture/08-crosscutting-concepts.md).
+- **Docker, .NET, Linux hosting at Infomaniak** — constraints set by the owner,
+  not decisions. Recorded in
+  [arc42 chapter 2](../architecture/02-constraints.md).
 
 ## Conventions
 
