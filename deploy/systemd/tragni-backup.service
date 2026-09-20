@@ -1,0 +1,9 @@
+[Unit]
+Description=tragni backup to Swiss Backup
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=oneshot
+User=ubuntu
+ExecStart=/opt/tragni/backup.sh
