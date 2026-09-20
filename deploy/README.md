@@ -12,6 +12,9 @@ The walking skeleton is not finished. What runs today:
 | `traefik` | TLS termination, routing, security headers |
 | `whoami` | **Temporary.** A test container that echoes the request it received. Proves routing and TLS work end to end. Removed once the frontend exists. |
 
+Backups run outside Docker, as a systemd timer on the host — see
+[backup.md](backup.md).
+
 ## Layout
 
 ```
@@ -21,6 +24,13 @@ deploy/
     traefik.yml               static configuration, read at startup
     dynamic/
       security.yml            middlewares, reloaded automatically on change
+  backup.sh                   restic backup, run by the systemd timer
+  backup.md                   backup and restore runbook
+  secrets/
+    backup.env.example        template; the real file lives only on the server
+  systemd/
+    tragni-backup.service
+    tragni-backup.timer
 ```
 
 The split matters: **static** configuration (entry points, providers, ACME)
@@ -123,5 +133,6 @@ effectively permanent.
 - [ ] Raise `stsSeconds` to 31536000 when the frontend ships.
 - [ ] Remove the `whoami` service once the frontend exists.
 - [ ] Certificate lifetime as a monitored metric.
-- [ ] Backup: restic against Infomaniak Swiss Backup (S3), with a rehearsed
-      restore — Q9.
+- [ ] A failed backup is currently only visible in the journal. Alerting on it
+      depends on observability, which does not exist yet — see
+      [backup.md](backup.md).

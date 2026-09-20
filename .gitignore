@@ -10,7 +10,8 @@
 *.p12
 appsettings.Local.json
 appsettings.*.Local.json
-deploy/secrets/
+deploy/secrets/*
+!deploy/secrets/*.example
 **/*.secret.*
 
 # ---------------------------------------------------------------------------
