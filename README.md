@@ -86,7 +86,7 @@ the absence of a staging environment and what would trigger adding one.
 
 - [x] Requirements
 - [x] Architecture (arc42) and ADRs
-- [ ] Infrastructure: server, Docker, proxy, backup
+- [x] Infrastructure: server, Docker, proxy, backup
 - [ ] Walking skeleton: browser → frontend → API → database, deployed
 - [ ] CI/CD pipeline
 - [ ] MVP: project catalogue and content management
