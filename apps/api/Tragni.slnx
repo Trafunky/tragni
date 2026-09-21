@@ -1,0 +1,11 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/Tragni.Api/Tragni.Api.csproj" />
+    <Project Path="src/Tragni.Domain/Tragni.Domain.csproj" />
+    <Project Path="src/Tragni.Infrastructure/Tragni.Infrastructure.csproj" />
+  </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/Tragni.Api.IntegrationTests/Tragni.Api.IntegrationTests.csproj" />
+    <Project Path="tests/Tragni.Domain.Tests/Tragni.Domain.Tests.csproj" />
+  </Folder>
+</Solution>
