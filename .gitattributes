@@ -1,0 +1,3 @@
+# LF everywhere, including the working tree on Windows: the shell scripts in
+# deploy/ run on Linux and break with CRLF line endings.
+* text=auto eol=lf
