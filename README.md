@@ -3,8 +3,8 @@
 A personal portfolio and engineering platform — built, documented and operated
 from the ground up.
 
-> **Status:** Early stage. Requirements and architecture are written; the first
-> code is next. See [Progress](#progress) for the current state.
+> **Status:** Early stage. Requirements and architecture are written; the
+> walking skeleton is being built. See [Progress](#progress) for the current state.
 
 ---
 
@@ -54,8 +54,9 @@ contact point — the generated API client. No shared code, no shared runtime.
 
 ## Running locally
 
-> Once the walking skeleton is in place, a single command will be enough. This
-> section will then list the actual prerequisites and steps.
+Prerequisites, commands and known pitfalls:
+[`docs/development.md`](docs/development.md). Once the walking skeleton is in
+place, a single command will start the whole stack.
 
 ## Documentation
 
@@ -64,6 +65,7 @@ contact point — the generated API client. No shared code, no shared runtime.
 | [Requirements](docs/requirements/) | Vision, personas, scope, quality goals, user stories, glossary |
 | [Architecture](docs/architecture/) | arc42: context, building blocks, runtime, deployment, crosscutting concepts, risks |
 | [ADRs](docs/adr/) | Architecture decisions, with rationale and rejected alternatives |
+| [Development](docs/development.md) | Local setup, rules the build enforces, troubleshooting |
 | [Contributing](CONTRIBUTING.md) | Conventions for branches, commits and pull requests |
 
 ## Quality goals
