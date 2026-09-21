@@ -140,9 +140,16 @@ checked when instrumentation is written, not afterwards
 | Information | Business events — published, uploaded, signed in |
 | Debug | Local development only |
 
-Health endpoints distinguish **liveness** (the process is alive) from
-**readiness** (dependencies are reachable). Docker's restart policy uses the
-former; the proxy and the deployment check use the latter.
+Health endpoints distinguish **liveness** from **readiness**:
+
+| Endpoint | Question | Checks | Used by |
+|---|---|---|---|
+| `/health/live` | Is the process alive? | none, deliberately | Docker restart policy |
+| `/health/ready` | Can it serve requests? | every check tagged `ready` — the database, once it exists | proxy, deployment check |
+
+Liveness runs no checks on purpose. If it checked the database, a database
+outage would make Docker restart a healthy API in a loop — which fixes nothing
+and adds load while the database recovers.
 
 ## Configuration and secrets
 
@@ -177,8 +184,8 @@ the lookup that serves redirects.
 
 | Level | Tool | Against |
 |---|---|---|
-| Domain unit tests | xUnit | no I/O, no framework — the TDD surface |
-| Integration tests | xUnit + Testcontainers | real PostgreSQL in a container |
+| Domain unit tests | xUnit v3 | no I/O, no framework — the TDD surface |
+| Integration tests | xUnit v3, `WebApplicationFactory`, Testcontainers | the API in-process, real PostgreSQL in a container |
 | Frontend unit tests | Vitest | logic and hooks |
 | Component tests | Testing Library | rendered output and behaviour |
 | End-to-end | Playwright | the whole stack, including axe-core checks |
@@ -186,6 +193,8 @@ the lookup that serves redirects.
 
 In-memory database providers are deliberately not used: they accept queries real
 PostgreSQL rejects, so a green test says nothing about production.
+
+.NET tests run on Microsoft Testing Platform, opted in via `global.json`.
 
 ## Accessibility and SEO
 
