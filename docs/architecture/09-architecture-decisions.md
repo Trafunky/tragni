@@ -30,6 +30,8 @@ This chapter is the index and the reading order.
 | [0009](../adr/0009-ef-core-for-data-access.md) | EF Core for data access |
 | [0010](../adr/0010-nextjs-as-frontend-framework.md) | Next.js as the frontend framework |
 | [0011](../adr/0011-pnpm-as-package-manager.md) | pnpm as the package manager |
+| [0012](../adr/0012-tailwind-css-for-styling.md) | Tailwind CSS for styling |
+| [0013](../adr/0013-openapi-typescript-for-the-generated-client.md) | openapi-typescript and openapi-fetch for the generated client |
 
 **Operations**
 

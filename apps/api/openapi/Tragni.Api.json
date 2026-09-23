@@ -1,0 +1,55 @@
+{
+  "openapi": "3.1.1",
+  "info": {
+    "title": "Tragni.Api | v1",
+    "version": "1.0.0"
+  },
+  "paths": {
+    "/api/status": {
+      "get": {
+        "tags": [
+          "Tragni.Api"
+        ],
+        "summary": "Reports that the API is reachable, and the time it currently holds.",
+        "operationId": "GetStatus",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GetStatusResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "GetStatusResponse": {
+        "required": [
+          "status",
+          "serverTime"
+        ],
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "string"
+          },
+          "serverTime": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      }
+    }
+  },
+  "tags": [
+    {
+      "name": "Tragni.Api"
+    }
+  ]
+}

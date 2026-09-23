@@ -24,11 +24,18 @@ dotnet test --solution apps/api/Tragni.slnx
 dotnet run --project apps/api/src/Tragni.Api
 ```
 
+Building the API also writes the OpenAPI specification to
+`apps/api/openapi/Tragni.Api.json`. It is committed: the frontend generates its
+types from it without .NET being installed.
+
 A running API answers on `/health/live` and `/health/ready`.
 
 ## Frontend
 
 Commands run from the repository root; `--filter web` selects the package.
+
+Copy `apps/web/.env.example` to `apps/web/.env.local` before the first start.
+The development server reads it at startup, so a change needs a restart.
 
 ```bash
 pnpm install                         # once, and after pulling changes
@@ -41,6 +48,27 @@ pnpm --filter web exec tsc --noEmit  # type check only
 `pnpm install` is a workspace-wide install: one `pnpm-lock.yaml` in the root
 covers every package. A second lock file inside `apps/web` is a mistake and gets
 deleted ([ADR-0011](adr/0011-pnpm-as-package-manager.md)).
+
+## API client
+
+`packages/api-client` turns the OpenAPI specification into TypeScript types.
+
+```bash
+pnpm --filter @tragni/api-client generate    # after changing the API
+pnpm --filter @tragni/api-client typecheck
+```
+
+`generate` also runs automatically on `pnpm install`. The generated
+`src/schema.d.ts` is not committed — the specification is the source, and one
+source is enough ([ADR-0013](adr/0013-openapi-typescript-for-the-generated-client.md)).
+
+After changing an endpoint the full chain is:
+
+```bash
+dotnet build apps/api/Tragni.slnx          # regenerates the specification
+pnpm --filter @tragni/api-client generate  # regenerates the types
+pnpm --filter web exec tsc --noEmit        # fails if the frontend still uses the old shape
+```
 
 ## Rules the build enforces
 
@@ -113,3 +141,14 @@ not fixed with `suppressHydrationWarning` — that would hide real mismatches to
 
 Deliberate. `eslint-config-next` depends on plugins that do not yet declare
 support for ESLint 10, so the warning is accepted until they do.
+
+### `openapi-typescript` fails with `Cannot read properties of undefined`
+
+TypeScript 7 does not yet provide the compiler API that `openapi-typescript`
+uses to emit types. The repository stays on TypeScript 5; check that no package
+was installed with `typescript@latest`.
+
+### `API_BASE_URL is not configured.`
+
+`apps/web/.env.local` is missing or the development server was started before it
+existed. Copy it from `.env.example` and restart.
