@@ -90,6 +90,10 @@ the absence of a staging environment and what would trigger adding one.
 - [x] Architecture (arc42) and ADRs
 - [x] Infrastructure: server, Docker, proxy, backup
 - [ ] Walking skeleton: browser → frontend → API → database, deployed
+  - [x] API: health endpoints and a first typed endpoint, with integration tests
+  - [x] Frontend: Next.js and Tailwind, reading the API through the generated client
+  - [ ] PostgreSQL and the first migration
+  - [ ] Both applications in containers, deployed
 - [ ] CI/CD pipeline
 - [ ] MVP: project catalogue and content management
 
