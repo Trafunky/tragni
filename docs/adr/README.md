@@ -22,6 +22,7 @@ sequentially, named after the decision rather than the chosen technology.
 | [0009](0009-ef-core-for-data-access.md) | EF Core for data access | accepted | 2026-09-19 |
 | [0010](0010-nextjs-as-frontend-framework.md) | Next.js as the frontend framework | accepted | 2026-09-19 |
 | [0011](0011-pnpm-as-package-manager.md) | pnpm as the package manager | accepted | 2026-09-19 |
+| [0012](0012-tailwind-css-for-styling.md) | Tailwind CSS for styling | accepted | 2026-09-23 |
 
 ## Decisions without an ADR
 
