@@ -23,6 +23,7 @@ sequentially, named after the decision rather than the chosen technology.
 | [0010](0010-nextjs-as-frontend-framework.md) | Next.js as the frontend framework | accepted | 2026-09-19 |
 | [0011](0011-pnpm-as-package-manager.md) | pnpm as the package manager | accepted | 2026-09-19 |
 | [0012](0012-tailwind-css-for-styling.md) | Tailwind CSS for styling | accepted | 2026-09-23 |
+| [0013](0013-openapi-typescript-for-the-generated-client.md) | openapi-typescript and openapi-fetch for the generated client | accepted | 2026-09-23 |
 
 ## Decisions without an ADR
 
