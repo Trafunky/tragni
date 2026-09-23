@@ -1,0 +1,8 @@
+packages:
+  - apps/web
+  - packages/*
+
+# Install scripts are blocked by default, because a compromised package could
+# run arbitrary code during `pnpm install`. Only these are allowed to run.
+allowBuilds:
+  unrs-resolver: true
