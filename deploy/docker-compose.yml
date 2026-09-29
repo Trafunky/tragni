@@ -17,25 +17,80 @@ services:
     networks:
       - edge
 
-  whoami:
-    image: traefik/whoami
-    container_name: whoami
+  postgres:
+    image: postgres:18-alpine
+    container_name: postgres
     restart: unless-stopped
     security_opt:
       - no-new-privileges:true
-    mem_limit: 32m
+    mem_limit: 512m
+    env_file:
+      - ./secrets/postgres.env
+    volumes:
+      # From version 18 the image stores data in a version-specific
+      # subdirectory; mounting .../data puts the container in a restart loop.
+      - postgres-data:/var/lib/postgresql
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U tragni -d tragni"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - internal
+
+  api:
+    image: ghcr.io/trafunky/tragni-api:0.1.0
+    container_name: api
+    restart: unless-stopped
+    security_opt:
+      - no-new-privileges:true
+    mem_limit: 384m
+    env_file:
+      - ./secrets/api.env
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - edge
+      - internal
+    labels:
+      - "traefik.enable=true"
+      # Same origin as the frontend, under /api: cookie sessions depend on it
+      # (ADR-0004). The longer rule needs the higher priority, otherwise the
+      # frontend's rule would swallow these requests.
+      - "traefik.http.routers.api.rule=(Host(`tragni.ch`) || Host(`www.tragni.ch`)) && PathPrefix(`/api`)"
+      - "traefik.http.routers.api.priority=100"
+      - "traefik.http.routers.api.entrypoints=websecure"
+      - "traefik.http.routers.api.middlewares=security-headers@file"
+      - "traefik.http.services.api.loadbalancer.server.port=8080"
+
+  web:
+    image: ghcr.io/trafunky/tragni-web:0.1.0
+    container_name: web
+    restart: unless-stopped
+    security_opt:
+      - no-new-privileges:true
+    mem_limit: 384m
+    environment:
+      API_BASE_URL: "http://api:8080"
+    depends_on:
+      - api
     networks:
       - edge
     labels:
       - "traefik.enable=true"
-      - "traefik.http.routers.whoami.rule=Host(`tragni.ch`) || Host(`www.tragni.ch`)"
-      - "traefik.http.routers.whoami.entrypoints=websecure"
-      - "traefik.http.routers.whoami.middlewares=security-headers@file"
-      - "traefik.http.services.whoami.loadbalancer.server.port=80"
+      - "traefik.http.routers.web.rule=Host(`tragni.ch`) || Host(`www.tragni.ch`)"
+      - "traefik.http.routers.web.entrypoints=websecure"
+      - "traefik.http.routers.web.middlewares=security-headers@file"
+      - "traefik.http.services.web.loadbalancer.server.port=3000"
 
 volumes:
   traefik-certs:
+  postgres-data:
 
 networks:
   edge:
     name: edge
+  internal:
+    name: internal
+    internal: true
