@@ -1,10 +1,9 @@
 using System.Net;
-using Microsoft.AspNetCore.Mvc.Testing;
 
 namespace Tragni.Api.IntegrationTests.Health;
 
-public sealed class HealthEndpointTests(WebApplicationFactory<Program> factory)
-    : IClassFixture<WebApplicationFactory<Program>>
+[Collection(ApiCollectionDefinition.Name)]
+public sealed class HealthEndpointTests(ApiFactory factory)
 {
     [Theory]
     [InlineData("/health/live")]
