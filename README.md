@@ -3,8 +3,9 @@
 A personal portfolio and engineering platform — built, documented and operated
 from the ground up.
 
-> **Status:** Early stage. Requirements and architecture are written; the
-> walking skeleton is being built. See [Progress](#progress) for the current state.
+> **Status:** The walking skeleton is live at [tragni.ch](https://tragni.ch):
+> browser, frontend, API and database, deployed in containers. Next: the CI/CD
+> pipeline, then the project catalogue. See [Progress](#progress).
 
 ---
 
@@ -89,11 +90,7 @@ the absence of a staging environment and what would trigger adding one.
 - [x] Requirements
 - [x] Architecture (arc42) and ADRs
 - [x] Infrastructure: server, Docker, proxy, backup
-- [ ] Walking skeleton: browser → frontend → API → database, deployed
-  - [x] API: health endpoints and a first typed endpoint, with integration tests
-  - [x] Frontend: Next.js and Tailwind, reading the API through the generated client
-  - [x] PostgreSQL and the first migration
-  - [ ] Both applications in containers, deployed
+- [x] Walking skeleton: browser → frontend → API → database, deployed
 - [ ] CI/CD pipeline
 - [ ] MVP: project catalogue and content management
 
