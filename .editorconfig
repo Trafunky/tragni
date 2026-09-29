@@ -18,3 +18,8 @@ dotnet_diagnostic.IDE0005.severity = warning
 [*.md]
 # Two trailing spaces are a hard line break in Markdown
 trim_trailing_whitespace = false
+
+# EF Core writes these files. They are generated code: our style rules apply to
+# what we write, not to what a tool emits.
+[**/Migrations/*.cs]
+generated_code = true

@@ -4,4 +4,8 @@
     <ProjectReference Include="..\Tragni.Domain\Tragni.Domain.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" />
+  </ItemGroup>
+
 </Project>
