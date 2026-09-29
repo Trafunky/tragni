@@ -24,11 +24,52 @@ dotnet test --solution apps/api/Tragni.slnx
 dotnet run --project apps/api/src/Tragni.Api
 ```
 
-Building the API also writes the OpenAPI specification to
-`apps/api/openapi/Tragni.Api.json`. It is committed: the frontend generates its
-types from it without .NET being installed.
+The OpenAPI specification is **not** written on every build, because generating
+it starts the application. Regenerate it deliberately after changing an endpoint:
+
+```powershell
+$env:ConnectionStrings__Database = "Host=not-used"
+dotnet build apps/api/src/Tragni.Api -p:OpenApiGenerateDocumentsOnBuild=true
+Remove-Item Env:\ConnectionStrings__Database
+```
+
+The connection string is never used: the generator starts the application only to
+read its endpoints. The result, `apps/api/openapi/Tragni.Api.json`, is committed,
+so the frontend generates its types without .NET being installed.
 
 A running API answers on `/health/live` and `/health/ready`.
+
+## Database
+
+PostgreSQL runs in a container, for development only:
+
+```bash
+docker compose -f deploy/docker-compose.dev.yml up -d     # start
+docker compose -f deploy/docker-compose.dev.yml down      # stop, keep the data
+docker compose -f deploy/docker-compose.dev.yml down -v   # stop and delete the data
+```
+
+The credentials sit in the compose file on purpose: the port is bound to the
+loopback interface and the data is throwaway. The server keeps its own in
+`/opt/tragni/secrets`, never in this repository.
+
+Migrations use the tools pinned in `.config/dotnet-tools.json`
+(`dotnet tool restore` once):
+
+```bash
+dotnet ef migrations add <Name> --project apps/api/src/Tragni.Infrastructure --startup-project apps/api/src/Tragni.Api --output-dir Persistence/Migrations
+dotnet ef database update --project apps/api/src/Tragni.Infrastructure --startup-project apps/api/src/Tragni.Api
+```
+
+**Migrations are never applied on application startup** ([ADR-0009](adr/0009-ef-core-for-data-access.md)).
+Applying them is a step of its own, here and later in the pipeline.
+
+`/health/ready` reports the database: it answers 503 while PostgreSQL is down,
+and `/health/live` keeps answering 200 — the process is fine, its dependency is
+not.
+
+**The API integration tests currently need this database running.** Testcontainers
+will remove that dependency; until then, start the container before `dotnet test`.
 
 ## Frontend
 
@@ -64,9 +105,22 @@ source is enough ([ADR-0013](adr/0013-openapi-typescript-for-the-generated-clien
 
 After changing an endpoint the full chain is:
 
+```powershell
+# Windows / PowerShell
+$env:ConnectionStrings__Database = "Host=not-used"
+dotnet build apps/api/src/Tragni.Api -p:OpenApiGenerateDocumentsOnBuild=true
+Remove-Item Env:\ConnectionStrings__Database
+```
+
 ```bash
-dotnet build apps/api/Tragni.slnx          # regenerates the specification
-pnpm --filter @tragni/api-client generate  # regenerates the types
+# Linux, macOS, and the pipeline
+ConnectionStrings__Database="Host=not-used" dotnet build apps/api/src/Tragni.Api -p:OpenApiGenerateDocumentsOnBuild=true
+```
+
+Then, in both cases:
+
+```bash
+pnpm --filter @tragni/api-client generate  # regenerate the types
 pnpm --filter web exec tsc --noEmit        # fails if the frontend still uses the old shape
 ```
 
@@ -152,3 +206,14 @@ was installed with `typescript@latest`.
 
 `apps/web/.env.local` is missing or the development server was started before it
 existed. Copy it from `.env.example` and restart.
+
+### The `postgres` container restarts in a loop
+
+From version 18 the official image stores data in a version-specific
+subdirectory. The volume belongs at `/var/lib/postgresql`, not at
+`/var/lib/postgresql/data`. The log says so, at length.
+
+### A style rule such as `IDE0161` fails on a file under `Migrations/`
+
+EF Core writes those files. `.editorconfig` marks `**/Migrations/*.cs` as
+generated code so analyzers skip them; our rules apply to what we write.

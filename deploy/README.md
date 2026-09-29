@@ -20,6 +20,7 @@ Backups run outside Docker, as a systemd timer on the host — see
 ```
 deploy/
   docker-compose.yml          services, networks, volumes
+  docker-compose.dev.yml      PostgreSQL for local development, never deployed
   traefik/
     traefik.yml               static configuration, read at startup
     dynamic/
@@ -136,3 +137,7 @@ effectively permanent.
 - [ ] A failed backup is currently only visible in the journal. Alerting on it
       depends on observability, which does not exist yet — see
       [backup.md](backup.md).
+- [ ] When PostgreSQL moves to the server: mount its volume at
+      `/var/lib/postgresql`, **not** `/var/lib/postgresql/data` — from version 18
+      the image stores data in a version-specific subdirectory and refuses to
+      start otherwise.
