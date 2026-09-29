@@ -1,0 +1,26 @@
+# Local development only. Never deployed: the server's stack is in
+# docker-compose.yml and gets its database credentials from /opt/tragni/secrets.
+name: tragni-dev
+
+services:
+  postgres:
+    image: postgres:18-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: tragni
+      POSTGRES_USER: tragni
+      # Development-only. This password protects nothing: the port is bound to
+      # the loopback interface and the data is throwaway.
+      POSTGRES_PASSWORD: tragni
+    ports:
+      - "127.0.0.1:5432:5432"
+    volumes:
+      - postgres-data:/var/lib/postgresql
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U tragni -d tragni"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+volumes:
+  postgres-data:
