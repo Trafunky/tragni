@@ -73,6 +73,27 @@ container of their own and apply the migrations to it, so a test run does not
 depend on what is running on the machine. Docker has to be available; this
 container does not.
 
+## Containers
+
+The whole stack can run locally the way it runs on the server:
+
+```bash
+docker compose -f deploy/docker-compose.dev.yml --profile apps up -d --build
+docker compose -f deploy/docker-compose.dev.yml --profile apps ps
+docker compose -f deploy/docker-compose.dev.yml --profile apps down
+```
+
+Without `--profile apps`, only PostgreSQL starts. That is the everyday case: the
+applications then run from the IDE against it.
+
+The API image is built from `apps/api`. The frontend image is built from the
+repository root, because it needs the workspace, the lock file and the committed
+OpenAPI specification — the frontend container is built without .NET being
+involved.
+
+Both images are multi-stage: the build stage carries the SDK and the sources,
+the runtime stage only the result. Neither ships a compiler or source code.
+
 ## Frontend
 
 Commands run from the repository root; `--filter web` selects the package.
@@ -227,3 +248,9 @@ Configuration wins by rank, not by call order: environment variables rank above
 runs *before* those files, so values set there are overwritten. The test fixture
 therefore sets `ConnectionStrings__Database` as an environment variable, and it
 does so before the host is built.
+
+### A container build fails with `NETSDK1064: Package … was not found`
+
+`bin/` and `obj/` from the host were copied into the image and overwrote the
+restore that ran inside it — they contain Windows paths. Patterns in
+`.dockerignore` match one level only: `**/obj` is needed, not `obj`.
