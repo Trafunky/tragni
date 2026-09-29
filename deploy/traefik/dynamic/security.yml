@@ -6,6 +6,6 @@ http:
         contentTypeNosniff: true
         browserXssFilter: true
         referrerPolicy: strict-origin-when-cross-origin
-        stsSeconds: 86400
+        stsSeconds: 31536000
         stsIncludeSubdomains: true
         forceSTSHeader: true
