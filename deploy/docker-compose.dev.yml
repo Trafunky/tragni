@@ -22,5 +22,29 @@ services:
       timeout: 5s
       retries: 5
 
+  api:
+    profiles: ["apps"]
+    build:
+      context: ../apps/api
+    environment:
+      ConnectionStrings__Database: "Host=postgres;Port=5432;Database=tragni;Username=tragni;Password=tragni"
+    ports:
+      - "127.0.0.1:5132:8080"
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+  web:
+    profiles: ["apps"]
+    build:
+      context: ..
+      dockerfile: apps/web/Dockerfile
+    environment:
+      API_BASE_URL: "http://api:8080"
+    ports:
+      - "127.0.0.1:3000:3000"
+    depends_on:
+      - api
+
 volumes:
   postgres-data:
