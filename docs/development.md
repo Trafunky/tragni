@@ -8,7 +8,7 @@ How to work on this repository locally, and the pitfalls already met once.
 |---|---|---|
 | .NET SDK | pinned in [`global.json`](../global.json) | API |
 | Git | current | — |
-| Docker Desktop | current | local PostgreSQL, image builds |
+| Docker Desktop | current | local PostgreSQL, integration tests, image builds |
 | Node.js | 24 or newer (`engines` in `package.json`) | web, API client |
 | pnpm | pinned via `packageManager` in `package.json` | workspace, installs |
 
@@ -68,8 +68,10 @@ Applying them is a step of its own, here and later in the pipeline.
 and `/health/live` keeps answering 200 — the process is fine, its dependency is
 not.
 
-**The API integration tests currently need this database running.** Testcontainers
-will remove that dependency; until then, start the container before `dotnet test`.
+The API integration tests do **not** use this database. They start a PostgreSQL
+container of their own and apply the migrations to it, so a test run does not
+depend on what is running on the machine. Docker has to be available; this
+container does not.
 
 ## Frontend
 
@@ -217,3 +219,11 @@ subdirectory. The volume belongs at `/var/lib/postgresql`, not at
 
 EF Core writes those files. `.editorconfig` marks `**/Migrations/*.cs` as
 generated code so analyzers skip them; our rules apply to what we write.
+
+### An integration test connects to the wrong database
+
+Configuration wins by rank, not by call order: environment variables rank above
+`appsettings.*.json`. `ConfigureAppConfiguration` inside `WebApplicationFactory`
+runs *before* those files, so values set there are overwritten. The test fixture
+therefore sets `ConnectionStrings__Database` as an environment variable, and it
+does so before the host is built.

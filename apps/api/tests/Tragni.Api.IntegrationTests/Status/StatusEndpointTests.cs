@@ -1,11 +1,10 @@
 using System.Net;
 using System.Net.Http.Json;
-using Microsoft.AspNetCore.Mvc.Testing;
 
 namespace Tragni.Api.IntegrationTests.Status;
 
-public sealed class StatusEndpointTests(WebApplicationFactory<Program> factory)
-    : IClassFixture<WebApplicationFactory<Program>>
+[Collection(ApiCollectionDefinition.Name)]
+public sealed class StatusEndpointTests(ApiFactory factory)
 {
     [Fact]
     public async Task ReportsOk()
