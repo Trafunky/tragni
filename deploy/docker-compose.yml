@@ -39,7 +39,7 @@ services:
       - internal
 
   api:
-    image: ghcr.io/trafunky/tragni-api:0.1.0
+    image: ghcr.io/trafunky/tragni-api:${TRAGNI_VERSION}
     container_name: api
     restart: unless-stopped
     security_opt:
@@ -65,7 +65,7 @@ services:
       - "traefik.http.services.api.loadbalancer.server.port=8080"
 
   web:
-    image: ghcr.io/trafunky/tragni-web:0.1.0
+    image: ghcr.io/trafunky/tragni-web:${TRAGNI_VERSION}
     container_name: web
     restart: unless-stopped
     security_opt:
