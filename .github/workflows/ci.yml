@@ -1,0 +1,72 @@
+name: CI
+
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+# A new push to the same branch makes the previous run pointless.
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  api:
+    name: API
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-dotnet@v4
+        with:
+          global-json-file: global.json
+
+      - name: Build
+        run: dotnet build apps/api/Tragni.slnx --configuration Release
+
+      # Integration tests start their own PostgreSQL container; the runner
+      # provides Docker.
+      - name: Test
+        run: dotnet test --solution apps/api/Tragni.slnx --configuration Release
+
+      - name: Regenerate the OpenAPI specification
+        env:
+          ConnectionStrings__Database: Host=not-used
+        run: dotnet build apps/api/src/Tragni.Api -p:OpenApiGenerateDocumentsOnBuild=true
+
+      # The committed specification is the contract the frontend is generated
+      # from (ADR-0003). If it drifts from the code, nobody notices until the
+      # frontend breaks — so the build says so here.
+      - name: Fail if the committed specification is out of date
+        run: git diff --exit-code apps/api/openapi
+
+  web:
+    name: Web
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: pnpm
+
+      - run: pnpm install --frozen-lockfile
+
+      - name: Type-check the generated client
+        run: pnpm --filter @tragni/api-client typecheck
+
+      - name: Lint
+        run: pnpm --filter web lint
+
+      - name: Type-check
+        run: pnpm --filter web exec tsc --noEmit
+
+      - name: Build
+        run: pnpm --filter web build
