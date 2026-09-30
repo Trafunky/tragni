@@ -65,8 +65,10 @@ jobs:
       - name: Lint
         run: pnpm --filter web lint
 
-      - name: Type-check
-        run: pnpm --filter web exec tsc --noEmit
-
       - name: Build
         run: pnpm --filter web build
+
+      # After the build: Next.js generates route types into .next/types, and
+      # tsconfig.json includes them. On a fresh machine they do not exist yet.
+      - name: Type-check
+        run: pnpm --filter web exec tsc --noEmit
