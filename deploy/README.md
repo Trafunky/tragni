@@ -96,6 +96,11 @@ deploy key; `ubuntu` has no access to it any more.
 Registry credentials are stored per user. A `docker login` as `ubuntu` does
 nothing for `deploy` — that cost one failed deployment to learn.
 
+**A cancelled CI run on main is not a failure.** GitHub reports it as
+`cancelled`, so the deploy job's `success` guard skips and nothing is rolled
+out — silently, because a cancellation notifies no one. `cancel-in-progress`
+therefore applies to feature branches only; on `main` runs queue instead (#39).
+
 ## Decisions visible in these files
 
 | What | Why |
