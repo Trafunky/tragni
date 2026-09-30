@@ -60,38 +60,41 @@ system serves traffic belongs in `dynamic/`.
 
 ## How it is deployed
 
-Images are built locally, pushed to GitHub Container Registry and pulled on the
-server. The build never runs on the server (constraint T5).
+Automatically. A merge into `main` runs CI; when CI succeeds, the deploy
+workflow builds both images, pushes them to GHCR tagged with the commit hash,
+applies the migration script, writes that hash into `/opt/tragni/.env`, pulls,
+restarts, and then polls the site until it answers — or fails (Q11).
 
-```powershell
-docker build -t ghcr.io/trafunky/tragni-api:<version> apps/api
-docker build -t ghcr.io/trafunky/tragni-web:<version> -f apps/web/Dockerfile .
-docker push ghcr.io/trafunky/tragni-api:<version>
-docker push ghcr.io/trafunky/tragni-web:<version>
-```
+Nothing is built on the server (T5), and nothing is deployed that has not passed
+the tests.
 
-Then the tags in `docker-compose.yml` are raised, the file is copied to the
-server, and there:
+| Where | What |
+|---|---|
+| GitHub Actions | build, test, images, migration script |
+| `deploy` on the server | pull and restart. No `sudo`, limited to Docker and `/opt/tragni` |
+| `/opt/tragni/.env` | `TRAGNI_VERSION` — the commit currently running |
 
-```bash
-cd /opt/tragni && docker compose pull && docker compose up -d
-```
+### Rolling back
 
-Migrations are a separate step and never run on application startup
-([ADR-0009](../docs/adr/0009-ef-core-for-data-access.md)). The script is
-generated locally and applied on the server:
-
-```powershell
-dotnet ef migrations script --idempotent --project apps/api/src/Tragni.Infrastructure --startup-project apps/api/src/Tragni.Api -o migrate.sql
-scp migrate.sql ubuntu@<server>:/home/ubuntu/migrate.sql
-```
+Not automated, and a one-liner:
 
 ```bash
-docker compose exec -T postgres sh -c 'PGPASSWORD=$POSTGRES_PASSWORD psql -U tragni -d tragni' < /home/ubuntu/migrate.sql
+cd /opt/tragni
+echo "TRAGNI_VERSION=<older commit hash>" > .env
+docker compose pull && docker compose up -d
 ```
 
-**This whole procedure is temporary.** The pipeline replaces it: build, test,
-push and deploy on merge to `main`, with no manual step (Q11, #27).
+A rollback does **not** undo a migration. Migrations are therefore written so
+that the previous version still runs against the new schema: columns are added,
+never removed in the same release.
+
+### Working on the server by hand
+
+`/opt/tragni` belongs to `deploy`. Use `sudo -u deploy …` or connect with the
+deploy key; `ubuntu` has no access to it any more.
+
+Registry credentials are stored per user. A `docker login` as `ubuntu` does
+nothing for `deploy` — that cost one failed deployment to learn.
 
 ## Decisions visible in these files
 
@@ -176,10 +179,15 @@ effectively permanent.
 - [ ] A failed backup is currently only visible in the journal. Alerting on it
       depends on observability, which does not exist yet — see
       [backup.md](backup.md).
-- [ ] The registry tokens expire: push token 29 Oct 2026, server read token
-      28 Dec 2026. The pipeline makes the push token unnecessary (#27); the
-      server token has to be renewed.
 - [ ] `pg_dump` in the backup, now that PostgreSQL runs here — see
       [backup.md](backup.md).
 - [ ] arc42 chapter 7 assumes about 250 MB for the frontend; measured at idle it
       is 43 MB. Revisit under load rather than simply lowering the number.
+- [ ] Delete the personal push token `tragni-push-local`: Actions publishes the
+      images now, so it is no longer needed.
+- [ ] The server's read token expires 28 Dec 2026 and has to be renewed, or the
+      next deployment fails at `docker compose pull`.
+- [ ] Old image tags accumulate in GHCR. Decide a retention policy before it
+      becomes a cleanup task.
+- [ ] Several GitHub actions still target Node 20 and are forced onto Node 24;
+      bump them to current majors.
