@@ -91,7 +91,7 @@ the absence of a staging environment and what would trigger adding one.
 - [x] Architecture (arc42) and ADRs
 - [x] Infrastructure: server, Docker, proxy, backup
 - [x] Walking skeleton: browser → frontend → API → database, deployed
-- [ ] CI/CD pipeline
+- [x] CI/CD pipeline
 - [ ] MVP: project catalogue and content management
 
 Current state in detail: [Issues](https://github.com/Trafunky/tragni/issues)
