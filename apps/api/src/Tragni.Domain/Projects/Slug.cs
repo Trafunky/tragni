@@ -6,6 +6,8 @@ namespace Tragni.Domain.Projects;
 
 public sealed record Slug
 {
+    private const int MaxLength = 100;
+
     private Slug(string value) => Value = value;
 
     public string Value { get; }
@@ -32,8 +34,9 @@ public sealed record Slug
         var lower = title.ToLowerInvariant();
         var withGermanReplaced = ReplaceGermanCharacters(lower);
         var withoutDiacritics = RemoveDiacritics(withGermanReplaced);
+        var joined = JoinAllowedCharacters(withoutDiacritics);
 
-        return JoinAllowedCharacters(withoutDiacritics);
+        return Truncate(joined);
     }
 
     private static string ReplaceGermanCharacters(string text) =>
@@ -82,5 +85,23 @@ public sealed record Slug
         }
 
         return builder.ToString();
+    }
+
+    private static string Truncate(string text)
+    {
+        if (text.Length <= MaxLength)
+        {
+            return text;
+        }
+
+        var truncated = text[..MaxLength];
+        var lastHyphenIndex = truncated.LastIndexOf('-');
+
+        if (lastHyphenIndex > 0)
+        {
+            truncated = truncated[..lastHyphenIndex];
+        }
+
+        return truncated.TrimEnd('-');
     }
 }

@@ -67,4 +67,22 @@ public class SlugTests
 
         Assert.Equal(expected, slug.Value);
     }
+
+    [Fact]
+    public void FromTitle_TitleLongerThanTheLimit_TruncatesAtAWordBoundary()
+    {
+        var title = string.Join(' ', Enumerable.Repeat("project", 30));
+
+        var slug = Slug.FromTitle(title);
+
+        Assert.Equal(string.Join('-', Enumerable.Repeat("project", 12)), slug.Value);
+    }
+
+    [Fact]
+    public void FromTitle_SingleWordLongerThanTheLimit_CutsItAtTheLimit()
+    {
+        var slug = Slug.FromTitle(new string('a', 150));
+
+        Assert.Equal(new string('a', 100), slug.Value);
+    }
 }
