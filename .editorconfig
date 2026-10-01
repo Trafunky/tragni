@@ -13,6 +13,7 @@ indent_size = 4
 
 # Enforced in the build (EnforceCodeStyleInBuild), fails it via TreatWarningsAsErrors
 csharp_style_namespace_declarations = file_scoped:warning
+csharp_using_directive_placement = outside_namespace:warning
 dotnet_diagnostic.IDE0005.severity = warning
 
 [*.md]

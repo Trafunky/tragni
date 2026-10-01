@@ -1,6 +1,7 @@
-namespace Tragni.Domain.Projects;
-
+using System.Text;
 using Tragni.Domain.Common;
+
+namespace Tragni.Domain.Projects;
 
 public sealed record Slug
 {
@@ -12,10 +13,7 @@ public sealed record Slug
     {
         ArgumentNullException.ThrowIfNull(title);
 
-        var words = title.ToLowerInvariant()
-            .Split(' ', StringSplitOptions.RemoveEmptyEntries);
-
-        var value = string.Join('-', words);
+        var value = Normalise(title);
 
         if (value.Length == 0)
         {
@@ -27,4 +25,30 @@ public sealed record Slug
     }
 
     public override string ToString() => Value;
+
+    private static string Normalise(string title)
+    {
+        var builder = new StringBuilder();
+        var separatorPending = false;
+
+        foreach (var c in title)
+        {
+            if (char.IsAsciiLetterOrDigit(c))
+            {
+                if (separatorPending && builder.Length > 0)
+                {
+                    builder.Append('-');
+                }
+
+                separatorPending = false;
+                builder.Append(char.ToLowerInvariant(c));
+            }
+            else
+            {
+                separatorPending = true;
+            }
+        }
+
+        return builder.ToString();
+    }
 }

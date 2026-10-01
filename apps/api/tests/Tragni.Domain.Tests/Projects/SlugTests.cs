@@ -1,7 +1,7 @@
-namespace Tragni.Domain.Tests.Projects;
-
-using Tragni.Domain.Projects;
 using Tragni.Domain.Common;
+using Tragni.Domain.Projects;
+
+namespace Tragni.Domain.Tests.Projects;
 
 public class SlugTests
 {
@@ -27,8 +27,21 @@ public class SlugTests
     [Theory]
     [InlineData("")]
     [InlineData("   ")]
+    [InlineData("!!!")]
     public void FromTitle_TitleWithoutUsableCharacters_ThrowsDomainException(string title)
     {
         Assert.Throws<DomainException>(() => Slug.FromTitle(title));
+    }
+
+    [Theory]
+    [InlineData("MES & Interface", "mes-interface")]
+    [InlineData("Node.js", "node-js")]
+    [InlineData("C# / .NET", "c-net")]
+    [InlineData("Projekt (2026)", "projekt-2026")]
+    public void FromTitle_TitleWithDisallowedCharacters_TreatsThemAsSeparators(string title, string expected)
+    {
+        var slug = Slug.FromTitle(title);
+
+        Assert.Equal(expected, slug.Value);
     }
 }
