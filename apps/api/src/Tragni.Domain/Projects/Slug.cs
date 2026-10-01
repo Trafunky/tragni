@@ -28,10 +28,12 @@ public sealed record Slug
 
     private static string Normalise(string title)
     {
+        var prepared = ReplaceGermanCharacters(title.ToLowerInvariant());
         var builder = new StringBuilder();
         var separatorPending = false;
 
-        foreach (var c in title)
+
+        foreach (var c in prepared)
         {
             if (char.IsAsciiLetterOrDigit(c))
             {
@@ -41,7 +43,8 @@ public sealed record Slug
                 }
 
                 separatorPending = false;
-                builder.Append(char.ToLowerInvariant(c));
+
+                builder.Append(c);
             }
             else
             {
@@ -51,4 +54,10 @@ public sealed record Slug
 
         return builder.ToString();
     }
+
+    private static string ReplaceGermanCharacters(string text) =>
+        text.Replace("ä", "ae")
+            .Replace("ö", "oe")
+            .Replace("ü", "ue")
+            .Replace("ß", "ss");
 }

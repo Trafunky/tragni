@@ -44,4 +44,16 @@ public class SlugTests
 
         Assert.Equal(expected, slug.Value);
     }
+
+    [Theory]
+    [InlineData("Müller & Söhne", "mueller-soehne")]
+    [InlineData("Übergabe", "uebergabe")]
+    [InlineData("Weiß", "weiss")]
+    [InlineData("Fahrzeugprüfung", "fahrzeugpruefung")]
+    public void FromTitle_TitleWithGermanCharacters_TransliteratesThem(string title, string expected)
+    {
+        var slug = Slug.FromTitle(title);
+
+        Assert.Equal(expected, slug.Value);
+    }
 }
