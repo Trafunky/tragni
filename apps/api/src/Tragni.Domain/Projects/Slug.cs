@@ -1,3 +1,4 @@
+using System.Globalization;
 using System.Text;
 using Tragni.Domain.Common;
 
@@ -28,12 +29,41 @@ public sealed record Slug
 
     private static string Normalise(string title)
     {
-        var prepared = ReplaceGermanCharacters(title.ToLowerInvariant());
-        var builder = new StringBuilder();
+        var lower = title.ToLowerInvariant();
+        var withGermanReplaced = ReplaceGermanCharacters(lower);
+        var withoutDiacritics = RemoveDiacritics(withGermanReplaced);
+
+        return JoinAllowedCharacters(withoutDiacritics);
+    }
+
+    private static string ReplaceGermanCharacters(string text) =>
+        text.Replace("ä", "ae")
+            .Replace("ö", "oe")
+            .Replace("ü", "ue")
+            .Replace("ß", "ss");
+
+    private static string RemoveDiacritics(string text)
+    {
+        var decomposed = text.Normalize(NormalizationForm.FormD);
+        var builder = new StringBuilder(decomposed.Length);
+
+        foreach (var c in decomposed)
+        {
+            if (CharUnicodeInfo.GetUnicodeCategory(c) != UnicodeCategory.NonSpacingMark)
+            {
+                builder.Append(c);
+            }
+        }
+
+        return builder.ToString().Normalize(NormalizationForm.FormC);
+    }
+
+    private static string JoinAllowedCharacters(string text)
+    {
+        var builder = new StringBuilder(text.Length);
         var separatorPending = false;
 
-
-        foreach (var c in prepared)
+        foreach (var c in text)
         {
             if (char.IsAsciiLetterOrDigit(c))
             {
@@ -43,7 +73,6 @@ public sealed record Slug
                 }
 
                 separatorPending = false;
-
                 builder.Append(c);
             }
             else
@@ -54,10 +83,4 @@ public sealed record Slug
 
         return builder.ToString();
     }
-
-    private static string ReplaceGermanCharacters(string text) =>
-        text.Replace("ä", "ae")
-            .Replace("ö", "oe")
-            .Replace("ü", "ue")
-            .Replace("ß", "ss");
 }

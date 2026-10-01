@@ -56,4 +56,15 @@ public class SlugTests
 
         Assert.Equal(expected, slug.Value);
     }
+
+    [Theory]
+    [InlineData("Café Zürich", "cafe-zuerich")]
+    [InlineData("Señor", "senor")]
+    [InlineData("Hôtel Façade", "hotel-facade")]
+    public void FromTitle_TitleWithDiacritics_ReducesThemToBaseLetters(string title, string expected)
+    {
+        var slug = Slug.FromTitle(title);
+
+        Assert.Equal(expected, slug.Value);
+    }
 }
