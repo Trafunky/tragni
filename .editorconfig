@@ -23,3 +23,10 @@ trim_trailing_whitespace = false
 # what we write, not to what a tool emits.
 [**/Migrations/*.cs]
 generated_code = true
+
+# Test names are sentences, not identifiers:
+# FromTitle_TitleWithUppercaseLetters_ReturnsLowercaseSlug.
+# CA1707 protects the public surface of a library — a concern that does not
+# exist for test methods, which have no callers but the test runner.
+[apps/api/tests/**/*.cs]
+dotnet_diagnostic.CA1707.severity = none
