@@ -6,7 +6,7 @@ public sealed record Slug
 
     public string Value { get; }
 
-    public static Slug FromTitle(string title) => new(title.ToLowerInvariant());
+    public static Slug FromTitle(string title) => new(title.Trim().ToLowerInvariant().Replace(' ', '-'));
 
     public override string ToString() => Value;
 }
