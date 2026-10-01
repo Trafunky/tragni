@@ -6,7 +6,13 @@ public sealed record Slug
 
     public string Value { get; }
 
-    public static Slug FromTitle(string title) => new(title.Trim().ToLowerInvariant().Replace(' ', '-'));
+    public static Slug FromTitle(string title)
+    {
+        var words = title.ToLowerInvariant()
+            .Split(' ', StringSplitOptions.RemoveEmptyEntries);
+
+        return new Slug(string.Join('-', words));
+    }
 
     public override string ToString() => Value;
 }

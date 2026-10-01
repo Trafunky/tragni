@@ -4,25 +4,16 @@ using Tragni.Domain.Projects;
 
 public class SlugTests
 {
-    [Fact]
-    public void FromTitle_TitleWithUppercaseLetters_ReturnsLowercaseSlug()
+    [Theory]
+    [InlineData("Portfolio", "portfolio")]
+    [InlineData("MES Interface", "mes-interface")]
+    [InlineData("MES  Interface", "mes-interface")]
+    [InlineData(" MES Interface ", "mes-interface")]
+    [InlineData("MES Interface Documentation", "mes-interface-documentation")]
+    public void FromTitle_ReturnsLowercaseWordsJoinedBySingleHyphens(string title, string expected)
     {
-        var slug = Slug.FromTitle("Portfolio");
+        var slug = Slug.FromTitle(title);
 
-        Assert.Equal("portfolio", slug.Value);
-    }
-    [Fact]
-    public void FromTitle_TitleWithSpaces_ReplacesSpacesWithHyphens()
-    {
-        var slug = Slug.FromTitle("MES Interface");
-
-        Assert.Equal("mes-interface", slug.Value);
-    }
-
-    [Fact]
-    public void FromTitle_TitleSurroundedBySpaces_ReturnsSlugWithoutEdgeHyphens()
-    {
-        var slug = Slug.FromTitle(" MES Interface ");
-        Assert.Equal("mes-interface", slug.Value);
+        Assert.Equal(expected, slug.Value);
     }
 }
