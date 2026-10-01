@@ -1,7 +1,7 @@
-namespace Tragni.Domain.Tests.Projects;
-
-using Tragni.Domain.Projects;
 using Tragni.Domain.Common;
+using Tragni.Domain.Projects;
+
+namespace Tragni.Domain.Tests.Projects;
 
 public class SlugTests
 {
@@ -27,8 +27,62 @@ public class SlugTests
     [Theory]
     [InlineData("")]
     [InlineData("   ")]
+    [InlineData("!!!")]
     public void FromTitle_TitleWithoutUsableCharacters_ThrowsDomainException(string title)
     {
         Assert.Throws<DomainException>(() => Slug.FromTitle(title));
+    }
+
+    [Theory]
+    [InlineData("MES & Interface", "mes-interface")]
+    [InlineData("Node.js", "node-js")]
+    [InlineData("C# / .NET", "c-net")]
+    [InlineData("Projekt (2026)", "projekt-2026")]
+    public void FromTitle_TitleWithDisallowedCharacters_TreatsThemAsSeparators(string title, string expected)
+    {
+        var slug = Slug.FromTitle(title);
+
+        Assert.Equal(expected, slug.Value);
+    }
+
+    [Theory]
+    [InlineData("Müller & Söhne", "mueller-soehne")]
+    [InlineData("Übergabe", "uebergabe")]
+    [InlineData("Weiß", "weiss")]
+    [InlineData("Fahrzeugprüfung", "fahrzeugpruefung")]
+    public void FromTitle_TitleWithGermanCharacters_TransliteratesThem(string title, string expected)
+    {
+        var slug = Slug.FromTitle(title);
+
+        Assert.Equal(expected, slug.Value);
+    }
+
+    [Theory]
+    [InlineData("Café Zürich", "cafe-zuerich")]
+    [InlineData("Señor", "senor")]
+    [InlineData("Hôtel Façade", "hotel-facade")]
+    public void FromTitle_TitleWithDiacritics_ReducesThemToBaseLetters(string title, string expected)
+    {
+        var slug = Slug.FromTitle(title);
+
+        Assert.Equal(expected, slug.Value);
+    }
+
+    [Fact]
+    public void FromTitle_TitleLongerThanTheLimit_TruncatesAtAWordBoundary()
+    {
+        var title = string.Join(' ', Enumerable.Repeat("project", 30));
+
+        var slug = Slug.FromTitle(title);
+
+        Assert.Equal(string.Join('-', Enumerable.Repeat("project", 12)), slug.Value);
+    }
+
+    [Fact]
+    public void FromTitle_SingleWordLongerThanTheLimit_CutsItAtTheLimit()
+    {
+        var slug = Slug.FromTitle(new string('a', 150));
+
+        Assert.Equal(new string('a', 100), slug.Value);
     }
 }

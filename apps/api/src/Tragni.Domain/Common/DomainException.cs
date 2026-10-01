@@ -6,5 +6,4 @@ public sealed class DomainException : Exception
         : base(message)
     {
     }
-
 }
