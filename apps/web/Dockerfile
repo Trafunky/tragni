@@ -30,6 +30,12 @@ ENV HOSTNAME=0.0.0.0
 COPY --from=build /repo/apps/web/.next/standalone ./
 COPY --from=build /repo/apps/web/.next/static ./apps/web/.next/static
 
+# public/ is not part of the standalone output and has to be copied separately.
+# A file missing here shows up only as a broken image in the browser — never as
+# a failed build, because both the local build and CI read public/ straight from
+# the working directory.
+COPY --from=build /repo/apps/web/public ./apps/web/public
+
 USER node
 EXPOSE 3000
 CMD ["node", "apps/web/server.js"]
