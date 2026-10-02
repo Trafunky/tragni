@@ -128,7 +128,7 @@ apps/web/
       ui/                  base components
       layout/              header, footer, navigation
     lib/                   api client wrapper, formatting, utilities
-    messages/              de.json, en.json
+    i18n/                  locales, typed dictionaries (de.ts, en.ts)
 ```
 
 | Block | Responsibility |

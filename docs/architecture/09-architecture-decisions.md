@@ -32,6 +32,7 @@ This chapter is the index and the reading order.
 | [0011](../adr/0011-pnpm-as-package-manager.md) | pnpm as the package manager |
 | [0012](../adr/0012-tailwind-css-for-styling.md) | Tailwind CSS for styling |
 | [0013](../adr/0013-openapi-typescript-for-the-generated-client.md) | openapi-typescript and openapi-fetch for the generated client |
+| [0014](../adr/0014-internationalisation-without-a-library.md) | Internationalisation without a library |
 
 **Operations**
 
@@ -49,7 +50,7 @@ not mistake them for independent judgements:
 | Root | Decisions it drove |
 |---|---|
 | 4 GB of RAM on a single VPS (T4) | 0004 (no Keycloak), 0006 (no self-hosted observability), no orchestrator, no staging environment |
-| One developer, few hours per week (O1) | 0003 (one repository), 0007 and 0008 (less ceremony), 0010 (one application for public and admin) |
+| One developer, few hours per week (O1) | 0003 (one repository), 0007 and 0008 (less ceremony), 0010 (one application for public and admin), 0014 (no i18n library to maintain) |
 | Public repository (T6) | 0002 (English), environment-based configuration throughout |
 | Demos from other people (Q13) | 0005 (label-based routing), network isolation per demo, token exchange instead of shared identity |
 
