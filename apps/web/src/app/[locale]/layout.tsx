@@ -1,8 +1,8 @@
-import type { Metadata } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
-import { notFound } from "next/navigation";
+import type {Metadata} from "next";
+import {Geist, Geist_Mono} from "next/font/google";
+import {notFound} from "next/navigation";
 
-import { locales, isLocale } from "@/i18n/locales";
+import {locales, isLocale} from "@/i18n/locales";
 
 import "../globals.css";
 
@@ -23,14 +23,14 @@ export const metadata: Metadata = {
 };
 
 export function generateStaticParams() {
-  return locales.map((locale) => ({ locale }));
+  return locales.map((locale) => ({locale}));
 }
 
 export default async function LocaleLayout({
                                              children,
                                              params,
                                            }: LayoutProps<"/[locale]">) {
-  const { locale } = await params;
+  const {locale} = await params;
 
   if (!isLocale(locale)) {
     notFound();
