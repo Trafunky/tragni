@@ -1,26 +1,53 @@
 @import "tailwindcss";
 
+/* Warm off-white with a single copper accent. Every value is checked against
+   WCAG AA on its own background (Q5); the dark variant needs a lighter copper
+   to clear the same bar. */
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
-}
-
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  --background: #fbf9f7;
+  --surface: #f4f0ec;
+  --foreground: #1c1917;
+  --muted: #6b625b;
+  --accent: #9a5324;
+  --rule: #e3dcd4;
 }
 
 @media (prefers-color-scheme: dark) {
   :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+    --background: #14120f;
+    --surface: #1d1a16;
+    --foreground: #ede8e2;
+    --muted: #a39a91;
+    --accent: #d98e5a;
+    --rule: #2e2924;
   }
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-surface: var(--surface);
+  --color-foreground: var(--foreground);
+  --color-muted: var(--muted);
+  --color-accent: var(--accent);
+  --color-rule: var(--rule);
+
+  --font-sans: var(--font-geist-sans);
+  --font-mono: var(--font-geist-mono);
+  --font-serif: var(--font-source-serif);
 }
 
 body {
   background: var(--background);
   color: var(--foreground);
   font-family: var(--font-sans), system-ui, sans-serif;
+  line-height: 1.7;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Tailwind's focus utilities would have to be repeated on every interactive
+   element. A single rule is harder to forget (Q5). */
+:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 3px;
+  border-radius: 2px;
 }
