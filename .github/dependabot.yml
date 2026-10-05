@@ -1,0 +1,24 @@
+# Dependabot opens pull requests for outdated dependencies.
+#
+# Security updates need no configuration; they are switched on in the
+# repository settings and react to published advisories. Version updates --
+# the kind that keep the repository current rather than merely safe -- exist
+# only because of this file.
+version: 2
+
+updates:
+  - package-ecosystem: "github-actions"
+    # Dependabot looks for workflows under .github/workflows itself; the
+    # directory given here is the repository root, not the workflow folder.
+    directory: "/"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+    # One pull request for all actions rather than one per action. Actions are
+    # reviewed and merged as a set, and a single run of CI proves the set.
+    groups:
+      github-actions:
+        patterns:
+          - "*"
+    commit-message:
+      prefix: "build(deps)"
