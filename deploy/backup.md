@@ -13,6 +13,7 @@ backup transfers nothing.
 | | |
 |---|---|
 | Schedule | daily, 03:30 + up to 15 min jitter (systemd timer) |
+| Runs as | `deploy`, the owner of `/opt/tragni` |
 | Retention | 7 daily · 4 weekly · 6 monthly |
 | Target | Infomaniak Swiss Backup, S3, 20 GB allocated |
 | Credentials | `/opt/tragni/secrets/backup.env`, mode 600, never in this repository |
@@ -34,13 +35,11 @@ Currently `/opt/tragni` — configuration and, above all, `secrets/`, which exis
 nowhere else. The rest of the configuration is in this repository too, so today
 the backup protects one directory.
 
-That is expected at this stage. The mechanism is built now so that the restore
-is proven before anything depends on it.
-
-**When PostgreSQL is added**, the data directory is *not* backed up. A running
-database directory copied file by file produces an inconsistent snapshot at
-best. Instead, `pg_dump` writes to `/opt/tragni/data/`, and that file is backed
-up. The script has a marked place for this.
+**PostgreSQL** is running, but its data is *not yet* part of the backup — see
+the open items. When it is added, the data directory is *not* backed up. A
+running database directory copied file by file produces an inconsistent
+snapshot at best. Instead, `pg_dump` writes to `/opt/tragni/data/`, and that
+file is backed up. The script has a marked place for this.
 
 **Uploaded media** gets a bind mount under `/opt/tragni/data/` rather than a
 named volume, so the backup runs unprivileged and needs no path into
@@ -52,7 +51,11 @@ named volume, so the backup runs unprivileged and needs no path into
 
 ## Preparation — needed in every case
 
+`secrets/` is readable by `deploy` only, so restores and inspections run as
+that user:
+
 ```bash
+sudo -iu deploy
 set -a && source /opt/tragni/secrets/backup.env && set +a
 ```
 
@@ -89,18 +92,32 @@ Inspect the difference **before** copying anything back.
 
 This is the path Q9's 30-minute RTO refers to.
 
+> **Not yet rehearsed end to end.** This procedure was written before the
+> `deploy` user and the deployment pipeline existed, and has only partly been
+> updated since. Known gaps: the pipeline's SSH access to a new server (key and
+> host key) and where the image version for `docker compose` comes from. See the
+> open items.
+
 1. Provision a VPS, Ubuntu LTS, SSH key from the Infomaniak key store
 2. Harden: UFW, swap, `PermitRootLogin no`, unattended-upgrades
 3. Install Docker and restic
-4. Recreate `/opt/tragni/secrets/backup.env` from the password manager
-5. Restore:
+4. Create the `deploy` user and add it to the `docker` group
+5. Recreate `/opt/tragni/secrets/backup.env` from the password manager
+   (owner `deploy`, mode 600)
+6. Restore as root, so that ownership and modes come back as they were, then
+   make sure everything belongs to `deploy`:
    ```bash
-   set -a && source /opt/tragni/secrets/backup.env && set +a
-   restic restore latest --target /
+   sudo bash -c 'set -a && source /opt/tragni/secrets/backup.env && set +a && restic restore latest --target /'
+   sudo chown -R deploy:deploy /opt/tragni
    ```
-6. Restore the database dump into PostgreSQL (once one exists)
-7. `cd /opt/tragni && docker compose up -d`
-8. Point DNS at the new IP address if it changed
+7. Install the systemd units — see
+   [Installing or updating the systemd units](#installing-or-updating-the-systemd-units)
+8. Log in to GHCR as `deploy` with a read-only token (`docker login ghcr.io`).
+   The server's registry login lives in `deploy`'s home directory, which is not
+   part of the backup — create a new token rather than looking for the old one.
+9. Restore the database dump into PostgreSQL (once one exists)
+10. `cd /opt/tragni && docker compose up -d`
+11. Point DNS at the new IP address if it changed
 
 Certificates are **not** restored — Traefik requests new ones automatically.
 That is why the ACME volume is deliberately not part of the backup.
@@ -120,7 +137,7 @@ A restore of `secrets/` leaves credentials in a world-readable directory.
 Quarterly, logged below. A backup whose restore has never been exercised is a
 hope, not a backup (risk R9).
 
-Minimum procedure:
+Minimum procedure, as `deploy` after the preparation step above:
 
 ```bash
 mkdir -p /tmp/restore-test
@@ -149,11 +166,43 @@ systemctl status tragni-backup.service         # how the last run went
 journalctl -u tragni-backup.service -n 50      # output of the last run
 ```
 
+The journal shows that a run was *attempted*. Only the snapshot list shows that
+one *succeeded* — the date of the newest snapshot is the check that counts:
+
+```bash
+sudo -u deploy bash -c 'set -a; source /opt/tragni/secrets/backup.env; set +a; restic snapshots --latest 1'
+```
+
 ## Run manually
 
 ```bash
 sudo systemctl start tragni-backup.service
 ```
+
+## Installing or updating the systemd units
+
+The units are not deployed by the pipeline: they change rarely and installing
+them needs root. Copy them from this repository so the server never drifts from
+it:
+
+```bash
+# on your machine, from the repository root
+scp deploy/systemd/tragni-backup.service deploy/systemd/tragni-backup.timer ubuntu@tragni.ch:/tmp/
+
+# on the server, as ubuntu
+grep -c $'\r' /tmp/tragni-backup.*      # must print 0 for both files
+sudo install -m 644 -o root -g root /tmp/tragni-backup.service /tmp/tragni-backup.timer /etc/systemd/system/
+rm /tmp/tragni-backup.*
+sudo systemctl daemon-reload
+sudo systemctl enable --now tragni-backup.timer
+```
+
+Windows line endings break a unit without a clear error: systemd reads
+`User=deploy\r` as a user that does not exist.
+
+The service runs as `deploy`, the owner of `/opt/tragni`. If that ownership
+changes, the backup stops working — it did once, see
+[Incidents](#incidents).
 
 ## Repository integrity
 
@@ -169,8 +218,31 @@ Worth doing occasionally, not daily.
 ## Open items
 
 - [ ] Failed backups are currently only visible in the journal. Once
-      observability exists, a failed run and a stale last-successful-backup
-      timestamp both need to raise an alert. **Until then, nobody is watching.**
-- [ ] Add the `pg_dump` step when PostgreSQL arrives.
+  observability exists, a failed run and a stale last-successful-backup
+  timestamp both need to raise an alert. **Until then, nobody is watching.**
+  This has already happened once — see [Incidents](#incidents).
+- [ ] Add the `pg_dump` step now that PostgreSQL is running, before the first
+  real content reaches the database.
+- [ ] Rehearse Case 3 end to end on a throwaway server and close its known
+  gaps. It is the procedure the RTO depends on, and the one least tested.
 - [ ] Set a calendar reminder for the quarterly rehearsal — an undated intention
-      does not happen.
+  does not happen.
+
+---
+
+# Incidents
+
+## 2026-10: backup failing unnoticed for 17 days
+
+From 1 to 17 October 2026, every scheduled run failed with `Permission denied`
+(status 203/EXEC). On 30 September `/opt/tragni` had been handed to the `deploy`
+user for the deployment pipeline, while the service still ran as `ubuntu`,
+which could no longer execute the script or read `secrets/`. The last good
+snapshot before the fix was taken on 30 September at 03:36.
+
+Nothing was lost; the database held no content yet. It was found by chance
+while preparing the `pg_dump` step. That is the real finding: a failing backup
+raised no alert, exactly as the first open item warns.
+
+Fixed by running the service as `deploy`, and by documenting how the units are
+installed so the server no longer drifts from this repository.
