@@ -82,6 +82,18 @@ jobs:
           scp -r deploy/traefik ${{ secrets.DEPLOY_USER }}@${{ secrets.DEPLOY_HOST }}:/opt/tragni/
           scp migrate.sql ${{ secrets.DEPLOY_USER }}@${{ secrets.DEPLOY_HOST }}:/tmp/migrate.sql
 
+      # backup.sh runs from a systemd timer, outside this pipeline. Installing it
+      # here keeps the copy on the server from drifting away from the repository.
+      # - Uploaded under a temporary name and renamed into place: bash reads a
+      #   script while running it, and a backup that happens to be running must
+      #   not read half of the old file and half of the new one.
+      # - The mode is set explicitly. Git stores the file as 100644; without the
+      #   execute bit, systemd fails with status 203/EXEC.
+      - name: Install the backup script
+        run: |
+          scp deploy/backup.sh ${{ secrets.DEPLOY_USER }}@${{ secrets.DEPLOY_HOST }}:/opt/tragni/backup.sh.new
+          ssh ${{ secrets.DEPLOY_USER }}@${{ secrets.DEPLOY_HOST }} 'chmod 700 /opt/tragni/backup.sh.new && mv /opt/tragni/backup.sh.new /opt/tragni/backup.sh'
+
       - name: Migrate and restart
         run: |
           ssh ${{ secrets.DEPLOY_USER }}@${{ secrets.DEPLOY_HOST }} bash -euo pipefail <<'REMOTE'
