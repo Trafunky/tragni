@@ -15,8 +15,9 @@ marketing document.
 | R6 | **Free tier dependency.** The observability backend could change its terms. | medium | low | Instrumentation is vendor-neutral OpenTelemetry; switching is a collector configuration change ([ADR-0006](../adr/0006-hosted-observability-backend.md)). |
 | R7 | **Framework caching semantics.** The frontend's caching model has changed across major versions; subtle staleness bugs are easy to introduce. | **medium** | medium | Version pinned; documentation read for the pinned version rather than blog posts; publishing verified end-to-end in the test suite. |
 | R8 | **Secret leaked into a public repository.** | low | high | `.gitignore`, secret scanning and push protection enabled, `.env.example` only. A leaked secret is rotated, not deleted. |
-| R9 | **Untested restore.** A backup that has never been restored is a hope, not a backup. | medium | **high** | Quarterly restore rehearsal into a fresh container, with a smoke test and a written log (Q9). |
+| R9 | **Untested restore.** A backup that has never been restored is a hope, not a backup. | medium | **high** | Quarterly rehearsal, logged in [backup.md](../../deploy/backup.md#rehearsal): files restored and compared, the database dump restored into a throwaway database and compared with the live one (Q9). The full rebuild of a lost server has not been rehearsed yet. |
 | R10 | **Bus factor of one.** Nobody else knows how this runs. | certain | low | Accepted for a personal project. Partly mitigated by the documentation being the point of the project. |
+| R11 | **Backup failing unnoticed.** A failed run shows up only in the journal; nothing reports it. It happened from 1 to 17 October 2026 after a change of file ownership. | **medium** | **high** | The service runs as the owner of `/opt/tragni`; script and units are installed from the repository. **Open:** an alert on a failed run or a stale last snapshot, which depends on observability ([backup.md](../../deploy/backup.md#incidents)). |
 
 R2 is the most likely to actually materialise, and it is the one the
 architecture is most shaped around. Every decision that reduced ceremony —
@@ -36,7 +37,7 @@ reader does not mistake it for an oversight.
 | D3 | **Media served from a volume, not object storage.** | One less moving part; Swiss Backup is backup, not live storage (A2). | If media volume outgrows the disk, or if a CDN becomes worthwhile. |
 | D4 | **In-process caching only, no Redis.** | A single API instance has nothing to share cache with. | If a second instance ever runs, in-process caching becomes incorrect, not just suboptimal. |
 | D5 | **No rate limiting beyond the proxy.** | Sufficient for current traffic. | Before the first public write endpoint — a contact form or a demo that accepts input. |
-| D6 | **Backup covers data, not the server.** Rebuilding means reinstalling Docker and restoring volumes by hand. | Infrastructure as code for one server is more effort than the rebuild it saves. | If the rebuild path is ever needed and proves slower than the RTO allows. |
+| D6 | **Backup covers data, not the server.** Rebuilding means installing Docker and restic by hand, restoring `/opt/tragni` and importing the database dump ([backup.md](../../deploy/backup.md), Case 4). | Infrastructure as code for one server is more effort than the rebuild it saves. | If the rebuild path is ever needed and proves slower than the RTO allows. |
 | D7 | **Demo lifecycle is manual.** Starting, stopping and updating a demo is an operator action. | No demos exist yet; automating an unbuilt process is guesswork. | Once the third demo exists. Before that, the process is not yet understood well enough to automate. |
 
 ## Explicitly not technical debt

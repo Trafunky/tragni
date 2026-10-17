@@ -3,8 +3,9 @@
 ## Infrastructure
 
 One Infomaniak VPS (constraint T3), Ubuntu LTS, Docker with Compose. Nothing is
-installed on the host beyond Docker itself, the SSH daemon and unattended
-security upgrades.
+installed on the host beyond Docker itself, the SSH daemon, unattended security
+upgrades, and restic for the backup, which runs as a systemd timer outside
+Docker.
 
 ```mermaid
 graph TB
@@ -21,14 +22,14 @@ graph TB
             web["web"]
             api["api"]
         end
-        subgraph data["network: data (internal only)"]
+        subgraph internalnet["network: internal (no route outside)"]
             db[("postgres")]
         end
         subgraph demonet["network: demo-quiz (internal only)"]
             demo["demo container"]
         end
         collector["otel-collector"]
-        backupjob["backup job (scheduled)"]
+        backupjob["backup job (systemd timer)"]
     end
 
     users -->|"443"| traefik
@@ -40,6 +41,7 @@ graph TB
     api -.-> collector
     web -.-> collector
     collector -->|OTLP| obs
+    backupjob -->|"pg_dump"| db
     backupjob -->|"encrypted"| s3
 ```
 
@@ -51,7 +53,7 @@ a platform compromise.
 | Network | Members | Reachable from |
 |---|---|---|
 | `edge` | traefik, web, api | Traefik is the only one bound to a host port |
-| `data` | postgres, api | Nothing outside; never published to the host |
+| `internal` | postgres, api | Nothing outside; never published to the host |
 | `demo-<name>` | traefik, that one demo (and its own database, if it has one) | Traefik only |
 
 Traefik is attached to every demo network so it can route to it. **A demo is
@@ -106,15 +108,17 @@ not a later phase.
 
 | What | Where | Backed up |
 |---|---|---|
-| Database | Docker volume | yes — dump, then encrypted upload |
-| Uploaded media | Docker volume | yes — direct encrypted upload |
+| Database | Docker volume | yes — `pg_dump` before each backup, then encrypted upload |
+| Uploaded media | Bind mount under `/opt/tragni/data/` (planned) | yes — part of `/opt/tragni`, encrypted upload |
 | Data protection keys | Volume or database | yes — losing them signs everyone out |
 | TLS certificates | Volume | no — reissued automatically |
-| Configuration and secrets | `.env` on the server, outside the repository | separately, by hand; not in any automated backup |
+| Configuration and secrets | `/opt/tragni` on the server; secrets never in the repository | yes — the whole directory, encrypted upload |
 
-Everything else is disposable. Rebuilding the server means: install Docker,
-restore the `.env` file, restore the volumes, `docker compose up`. That path is
-what the quarterly restore rehearsal (Q9) actually exercises.
+Everything else is disposable. Rebuilding the server means installing Docker and
+restic, restoring `/opt/tragni`, importing the database dump and starting the
+stack — step by step in [backup.md](../../deploy/backup.md), Case 4. The
+quarterly rehearsal (Q9) exercises the restore of files and database; the full
+rebuild on a fresh server has not been rehearsed yet (risk R9).
 
 ## Deployment pipeline
 

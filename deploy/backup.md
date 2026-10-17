@@ -14,6 +14,7 @@ backup transfers nothing.
 |---|---|
 | Schedule | daily, 03:30 + up to 15 min jitter (systemd timer) |
 | Runs as | `deploy`, the owner of `/opt/tragni` |
+| Script | `backup.sh`, installed by the deployment pipeline with every deployment |
 | Retention | 7 daily · 4 weekly · 6 monthly |
 | Target | Infomaniak Swiss Backup, S3, 20 GB allocated |
 | Credentials | `/opt/tragni/secrets/backup.env`, mode 600, never in this repository |
@@ -31,15 +32,17 @@ the repository — but only while an existing password is still known.
 
 ## What is backed up
 
-Currently `/opt/tragni` — configuration and, above all, `secrets/`, which exists
-nowhere else. The rest of the configuration is in this repository too, so today
-the backup protects one directory.
+`/opt/tragni` — configuration, `secrets/` (which exists nowhere else), the image
+version the server runs (`.env`), and the database dump in `data/`. Most of the
+configuration is in this repository too; `secrets/` and the database are not.
 
-**PostgreSQL** is running, but its data is *not yet* part of the backup — see
-the open items. When it is added, the data directory is *not* backed up. A
-running database directory copied file by file produces an inconsistent
-snapshot at best. Instead, `pg_dump` writes to `/opt/tragni/data/`, and that
-file is backed up. The script has a marked place for this.
+**PostgreSQL** is backed up as a dump, never as its data directory. A running
+database directory copied file by file produces an inconsistent snapshot at
+best. Before each backup, `backup.sh` runs `pg_dump` inside the container and
+writes `/opt/tragni/data/tragni.dump` — custom format, uncompressed (restic
+compresses and deduplicates better than a pre-compressed file allows), mode 600.
+Only the newest dump is kept on disk; older ones live in the snapshots, under the
+same retention as everything else. If the dump fails, the whole backup fails.
 
 **Uploaded media** gets a bind mount under `/opt/tragni/data/` rather than a
 named volume, so the backup runs unprivileged and needs no path into
@@ -88,15 +91,36 @@ diff -r /opt/tragni /tmp/restore/opt/tragni
 
 Inspect the difference **before** copying anything back.
 
-## Case 3 — the server is gone, rebuild from scratch
+## Case 3 — the database is lost or damaged, the server is fine
+
+Take the dump from a snapshot from *before* the damage — not the one in
+`/opt/tragni/data/`, which a backup run since may already have overwritten with
+damaged data:
+
+```bash
+restic snapshots                      # choose the snapshot
+restic restore <id> --target /tmp/restore --include /opt/tragni/data/tragni.dump
+
+cd /opt/tragni
+docker compose stop api
+docker exec postgres dropdb -U tragni --if-exists tragni
+docker exec postgres createdb -U tragni tragni
+docker exec -i postgres pg_restore -U tragni -d tragni < /tmp/restore/opt/tragni/data/tragni.dump
+docker compose start api
+```
+
+This **replaces the live database**. The API is stopped so that nothing writes
+to it in between. `dropdb` / `createdb` / `pg_restore` into an empty database is
+exactly the path the rehearsal exercises. `docker exec -i` keeps stdin open for
+the dump; never add `-t`, which would rewrite the binary stream.
+
+## Case 4 — the server is gone, rebuild from scratch
 
 This is the path Q9's 30-minute RTO refers to.
 
-> **Not yet rehearsed end to end.** This procedure was written before the
-> `deploy` user and the deployment pipeline existed, and has only partly been
-> updated since. Known gaps: the pipeline's SSH access to a new server (key and
-> host key) and where the image version for `docker compose` comes from. See the
-> open items.
+> **Not yet rehearsed end to end.** The database part (step 10) is the same as
+> the rehearsal; everything else has never been exercised on a fresh server.
+> See the open items.
 
 1. Provision a VPS, Ubuntu LTS, SSH key from the Infomaniak key store
 2. Harden: UFW, swap, `PermitRootLogin no`, unattended-upgrades
@@ -112,12 +136,27 @@ This is the path Q9's 30-minute RTO refers to.
    ```
 7. Install the systemd units — see
    [Installing or updating the systemd units](#installing-or-updating-the-systemd-units)
-8. Log in to GHCR as `deploy` with a read-only token (`docker login ghcr.io`).
-   The server's registry login lives in `deploy`'s home directory, which is not
-   part of the backup — create a new token rather than looking for the old one.
-9. Restore the database dump into PostgreSQL (once one exists)
-10. `cd /opt/tragni && docker compose up -d`
-11. Point DNS at the new IP address if it changed
+8. Give the pipeline access to the new server. Generate a new key pair for
+   `deploy`: the public half goes into `~deploy/.ssh/authorized_keys`, the
+   private half replaces the GitHub secret `DEPLOY_SSH_KEY`. The server has a
+   new host key, so replace `DEPLOY_KNOWN_HOSTS` with the output of
+   `ssh-keyscan <host>`.
+9. Start the database alone and wait until it is healthy:
+   ```bash
+   cd /opt/tragni && docker compose up -d --wait postgres
+   ```
+10. Restore the dump into the fresh, empty database:
+    ```bash
+    docker exec -i postgres pg_restore -U tragni -d tragni < /opt/tragni/data/tragni.dump
+    ```
+11. Log in to GHCR as `deploy` with a read-only token (`docker login ghcr.io`).
+    The server's registry login lives in `deploy`'s home directory, which is
+    not part of the backup — create a new token rather than looking for the
+    old one.
+12. `docker compose up -d` — this pulls the version recorded in the restored
+    `.env`. If that image no longer exists in GHCR, re-run the latest *Deploy*
+    workflow instead, which needs step 8.
+13. Point DNS at the new IP address if it changed
 
 Certificates are **not** restored — Traefik requests new ones automatically.
 That is why the ACME volume is deliberately not part of the backup.
@@ -128,7 +167,7 @@ That is why the ACME volume is deliberately not part of the backup.
 rm -rf /tmp/restore
 ```
 
-A restore of `secrets/` leaves credentials in a world-readable directory.
+A restore of `secrets/` or the database dump leaves sensitive data in `/tmp`.
 
 ---
 
@@ -137,15 +176,31 @@ A restore of `secrets/` leaves credentials in a world-readable directory.
 Quarterly, logged below. A backup whose restore has never been exercised is a
 hope, not a backup (risk R9).
 
-Minimum procedure, as `deploy` after the preparation step above:
+Minimum procedure, as `deploy` after the preparation step above. Files first:
 
 ```bash
 mkdir -p /tmp/restore-test
 restic restore latest --target /tmp/restore-test
 diff -r /opt/tragni /tmp/restore-test/opt/tragni && echo IDENTICAL
 ls -l /tmp/restore-test/opt/tragni/secrets/     # must be -rw-------
+ls -l /tmp/restore-test/opt/tragni/data/        # must be -rw-------
+```
+
+Then the database — the dump from the snapshot, never the one on disk, into a
+throwaway database, never the live one:
+
+```bash
+docker exec postgres createdb -U tragni tragni_restore_test
+docker exec -i postgres pg_restore -U tragni -d tragni_restore_test < /tmp/restore-test/opt/tragni/data/tragni.dump
+docker exec postgres psql -U tragni -d tragni_restore_test -c 'SELECT * FROM "__EFMigrationsHistory";'
+docker exec postgres psql -U tragni -d tragni -c 'SELECT * FROM "__EFMigrationsHistory";'
+docker exec postgres dropdb -U tragni tragni_restore_test
 rm -rf /tmp/restore-test
 ```
+
+Both queries must return the same rows. The migration history only proves the
+schema: once the database holds content, compare the row counts of the main
+tables as well.
 
 Checking file modes is part of it: a restore that returns secrets with open
 permissions is a failed restore, even if the content is correct.
@@ -153,6 +208,7 @@ permissions is a failed restore, even if the content is correct.
 | Date | Result | Notes |
 |---|---|---|
 | 2026-09-20 | passed | First rehearsal, right after setup. 5 files, content identical, modes preserved. |
+| 2026-10-17 | passed | First rehearsal with the database. Dump restored from snapshot `f15cebe4` into a throwaway database; migration history identical (`InitialCreate`, EF Core 10.0.12); mode preserved. Dump only — files last checked on 2026-09-20. |
 
 ---
 
@@ -181,9 +237,9 @@ sudo systemctl start tragni-backup.service
 
 ## Installing or updating the systemd units
 
-The units are not deployed by the pipeline: they change rarely and installing
-them needs root. Copy them from this repository so the server never drifts from
-it:
+`backup.sh` is installed by the deployment pipeline with every deployment. The
+units are not: they change rarely and installing them needs root. Copy them from
+this repository so the server never drifts from it:
 
 ```bash
 # on your machine, from the repository root
@@ -218,15 +274,14 @@ Worth doing occasionally, not daily.
 ## Open items
 
 - [ ] Failed backups are currently only visible in the journal. Once
-  observability exists, a failed run and a stale last-successful-backup
-  timestamp both need to raise an alert. **Until then, nobody is watching.**
-  This has already happened once — see [Incidents](#incidents).
-- [ ] Add the `pg_dump` step now that PostgreSQL is running, before the first
-  real content reaches the database.
-- [ ] Rehearse Case 3 end to end on a throwaway server and close its known
-  gaps. It is the procedure the RTO depends on, and the one least tested.
-- [ ] Set a calendar reminder for the quarterly rehearsal — an undated intention
-  does not happen.
+      observability exists, a failed run and a stale last-successful-backup
+      timestamp both need to raise an alert. **Until then, nobody is watching.**
+      This has already happened once — see [Incidents](#incidents).
+- [x] Add the `pg_dump` step — done 2026-10-17, rehearsed the same day.
+- [ ] Rehearse Case 4 end to end on a throwaway server. It is the procedure the
+      RTO depends on, and the one least tested.
+- [ ] Set a calendar reminder for the quarterly rehearsal — next due mid-January
+      2027. An undated intention does not happen.
 
 ---
 
@@ -244,5 +299,6 @@ Nothing was lost; the database held no content yet. It was found by chance
 while preparing the `pg_dump` step. That is the real finding: a failing backup
 raised no alert, exactly as the first open item warns.
 
-Fixed by running the service as `deploy`, and by documenting how the units are
-installed so the server no longer drifts from this repository.
+Fixed by running the service as `deploy`, by documenting how the units are
+installed, and by having the pipeline install `backup.sh`, so the server no
+longer drifts from this repository.

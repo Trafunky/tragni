@@ -30,7 +30,7 @@ deploy/
     traefik.yml               static configuration, read at startup
     dynamic/
       security.yml            middlewares, reloaded automatically on change
-  backup.sh                   restic backup, run by the systemd timer
+  backup.sh                   database dump and restic backup, run by the systemd timer
   backup.md                   backup and restore runbook
   secrets/
     backup.env.example        templates; the real files live only on the server
@@ -52,6 +52,9 @@ system serves traffic belongs in `dynamic/`.
 /opt/tragni/
   docker-compose.yml
   traefik/
+  backup.sh           installed by the pipeline, chmod 700
+  .env                image version, written by the pipeline
+  data/               chmod 700; tragni.dump, written before each backup
   secrets/            chmod 700, never in this repository
     backup.env
     postgres.env
@@ -62,8 +65,9 @@ system serves traffic belongs in `dynamic/`.
 
 Automatically. A merge into `main` runs CI; when CI succeeds, the deploy
 workflow builds both images, pushes them to GHCR tagged with the commit hash,
-applies the migration script, writes that hash into `/opt/tragni/.env`, pulls,
-restarts, and then polls the site until it answers — or fails (Q11).
+installs `backup.sh`, applies the migration script, writes that hash into
+`/opt/tragni/.env`, pulls, restarts, and then polls the site until it answers —
+or fails (Q11).
 
 Nothing is built on the server (T5), and nothing is deployed that has not passed
 the tests.
@@ -71,7 +75,7 @@ the tests.
 | Where | What |
 |---|---|
 | GitHub Actions | build, test, images, migration script |
-| `deploy` on the server | pull and restart. No `sudo`, limited to Docker and `/opt/tragni` |
+| `deploy` on the server | pull and restart; runs the nightly backup. No `sudo`, limited to Docker and `/opt/tragni` |
 | `/opt/tragni/.env` | `TRAGNI_VERSION` — the commit currently running |
 
 ### Rolling back
@@ -92,6 +96,11 @@ never removed in the same release.
 
 `/opt/tragni` belongs to `deploy`. Use `sudo -u deploy …` or connect with the
 deploy key; `ubuntu` has no access to it any more.
+
+The backup service runs as `deploy` for the same reason, and anything else that
+touches `/opt/tragni` has to as well. When this ownership changed, the backup
+stopped for 17 days without anyone noticing — see
+[backup.md](backup.md#incidents).
 
 Registry credentials are stored per user. A `docker login` as `ubuntu` does
 nothing for `deploy` — that cost one failed deployment to learn.
@@ -182,17 +191,17 @@ effectively permanent.
       but it should be configured deliberately rather than left at the default.
 - [ ] Certificate lifetime as a monitored metric.
 - [ ] A failed backup is currently only visible in the journal. Alerting on it
-      depends on observability, which does not exist yet — see
-      [backup.md](backup.md).
-- [ ] `pg_dump` in the backup, now that PostgreSQL runs here — see
-      [backup.md](backup.md).
+      depends on observability, which does not exist yet. It has already gone
+      unnoticed for 17 days once — see [backup.md](backup.md#incidents).
+- [x] `pg_dump` in the backup — done 2026-10-17, see [backup.md](backup.md).
 - [ ] arc42 chapter 7 assumes about 250 MB for the frontend; measured at idle it
       is 43 MB. Revisit under load rather than simply lowering the number.
-- [ ] Delete the personal push token `tragni-push-local`: Actions publishes the
-      images now, so it is no longer needed.
+- [x] Delete the personal push token `tragni-push-local`: Actions publishes the
+      images now, so it is no longer needed — done 2026-10-02.
 - [ ] The server's read token expires 28 Dec 2026 and has to be renewed, or the
       next deployment fails at `docker compose pull`.
 - [ ] Old image tags accumulate in GHCR. Decide a retention policy before it
-      becomes a cleanup task.
-- [ ] Several GitHub actions still target Node 20 and are forced onto Node 24;
-      bump them to current majors.
+      becomes a cleanup task. A restore runs the version recorded in
+      `/opt/tragni/.env`, so that image has to survive the policy.
+- [x] Several GitHub actions still target Node 20 and are forced onto Node 24;
+      bump them to current majors — done 2026-10-05 (#46).

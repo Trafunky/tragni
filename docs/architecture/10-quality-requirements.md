@@ -59,6 +59,7 @@ argued about.
 | The API container crashes at 03:00 | Docker restarts it; service resumes without a person; the event is visible in telemetry the next morning |
 | A demo consumes all available memory | Its memory limit terminates it; the platform keeps running |
 | The database volume is lost | Restored from the off-server backup within 30 minutes, with at most 24 hours of data lost (Q9) |
+| The nightly backup fails | The failure is reported the same day; nobody has to find it by chance (Q9) |
 | A deployment produces a broken image | The health check fails, the deployment is reported as failed, and the previous image is still running |
 | The observability backend is unreachable | The platform keeps serving; telemetry is buffered briefly, then dropped; nothing else degrades |
 
