@@ -3,9 +3,10 @@
 A personal portfolio and engineering platform — built, documented and operated
 from the ground up.
 
-> **Status:** The walking skeleton is live at [tragni.ch](https://tragni.ch):
-> browser, frontend, API and database, deployed in containers. Next: the CI/CD
-> pipeline, then the project catalogue. See [Progress](#progress).
+> **Status:** Live at [tragni.ch](https://tragni.ch): browser, frontend, API and
+> database, deployed in containers by the CI/CD pipeline, with a daily off-site
+> backup that includes the database. Next: the project catalogue. See
+> [Progress](#progress).
 
 ---
 
