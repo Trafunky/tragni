@@ -5,5 +5,7 @@ Wants=network-online.target
 
 [Service]
 Type=oneshot
-User=ubuntu
+# The owner of /opt/tragni. The script, secrets/ and everything backed up
+# are mode 700 for this user; any other user fails before restic starts.
+User=deploy
 ExecStart=/opt/tragni/backup.sh
